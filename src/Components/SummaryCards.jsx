@@ -1,4 +1,4 @@
-function SummaryCards() {
+function SummaryCards({ balance = 0, income = 0, expense = 0 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
 
@@ -7,8 +7,12 @@ function SummaryCards() {
           Total Balance
         </p>
 
-        <h2 className="text-2xl font-bold mt-2">
-          $0.00
+        <h2
+          className={`text-2xl font-bold mt-2 ${
+            balance < 0 ? "text-red-600" : "text-gray-900"
+          }`}
+        >
+          ${balance.toFixed(2)}
         </h2>
       </div>
 
@@ -18,7 +22,7 @@ function SummaryCards() {
         </p>
 
         <h2 className="text-2xl font-bold mt-2 text-green-600">
-          $0.00
+          ${income.toFixed(2)}
         </h2>
       </div>
 
@@ -28,7 +32,7 @@ function SummaryCards() {
         </p>
 
         <h2 className="text-2xl font-bold mt-2 text-red-600">
-          $0.00
+          ${expense.toFixed(2)}
         </h2>
       </div>
 

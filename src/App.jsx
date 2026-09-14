@@ -9,16 +9,29 @@ function App() {
   const [transactions, setTransactions] = useState([]);
 
   const addTransaction = (newTransaction) => {
-    setTransactions([...transactions, newTransaction]);
+    setTransactions((previousTransactions) => [
+      ...previousTransactions,
+      newTransaction,
+    ]);
   };
 
   const deleteTransaction = (id) => {
-    const updatedTransactions = transactions.filter(
-      (transaction) => transaction.id !== id
+    setTransactions((previousTransactions) =>
+      previousTransactions.filter(
+        (transaction) => transaction.id !== id
+      )
     );
-
-    setTransactions(updatedTransactions);
   };
+
+  const totalIncome = transactions
+    .filter((transaction) => transaction.type === "income")
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  const totalExpense = transactions
+    .filter((transaction) => transaction.type === "expense")
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  const balance = totalIncome - totalExpense;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -30,7 +43,11 @@ function App() {
           Dashboard
         </h2>
 
-        <SummaryCards />
+        <SummaryCards
+          balance={balance}
+          income={totalIncome}
+          expense={totalExpense}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 
