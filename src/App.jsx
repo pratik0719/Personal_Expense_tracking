@@ -3,12 +3,21 @@ import { useState } from "react";
 import Header from "./components/Header.jsx";
 import SummaryCards from "./components/SummaryCards.jsx";
 import TransactionForm from "./components/TransactionForm.jsx";
+import TransactionList from "./components/TransactionList.jsx";
 
 function App() {
   const [transactions, setTransactions] = useState([]);
 
   const addTransaction = (newTransaction) => {
     setTransactions([...transactions, newTransaction]);
+  };
+
+  const deleteTransaction = (id) => {
+    const updatedTransactions = transactions.filter(
+      (transaction) => transaction.id !== id
+    );
+
+    setTransactions(updatedTransactions);
   };
 
   return (
@@ -29,16 +38,11 @@ function App() {
             onAddTransaction={addTransaction}
           />
 
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-
-            <h2 className="text-xl font-semibold text-gray-800">
-              Transactions
-            </h2>
-
-            <p className="text-gray-500 mt-4">
-              Total Transactions: {transactions.length}
-            </p>
-
+          <div className="lg:col-span-2">
+            <TransactionList
+              transactions={transactions}
+              onDelete={deleteTransaction}
+            />
           </div>
 
         </div>

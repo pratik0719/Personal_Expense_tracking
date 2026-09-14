@@ -1,38 +1,60 @@
-# Personal Expense Tracking
+# Personal Expense Tracker
 
-A React-based college project for tracking personal expenses.
+A personal expense tracking application built using React and Tailwind CSS.
 
-## About the Project
+The application allows users to record their income and expenses and will provide a simple overview of their financial activity.
 
-This project is a frontend application built to practice React.js and Tailwind CSS.
+## Features
 
-### Technologies Used
+Currently implemented:
 
-* React.js
-* Vite
-* Tailwind CSS
-* JavaScript
+- Responsive expense tracker dashboard
+- Summary cards for balance, income, and expenses
+- Add income and expense transactions
+- Transaction type selection
+- Amount input
+- Category selection
+- Description input
+- Date selection
+- Controlled React form using useState
+- Form validation
+- Display transaction history
+- Conditional empty transaction state
+- Render transaction lists using map()
+- Unique React keys for transaction items
+- Delete individual transactions
+- Reusable React components
+- Parent-to-child data flow using props
 
-### Project Scope
+## Planned features:
 
-This project currently focuses **only on the frontend**. No backend or database has been implemented yet.
+- Calculate total income
+- Calculate total expenses
+- Calculate current balance
+- Filter transactions by category
+- Sort transactions by date
+- Save transactions using localStorage
+- Spending chart
+- Monthly summary
+- Budget limit warning
 
-## Getting Started
+## Technologies Used
 
-Clone the repository and install the dependencies:
+- React
+- JavaScript
+- Tailwind CSS
+- Vite
+- HTML
 
-```bash
-npm install
-```
+## Project Structure
 
-Run the development server:
-
-```bash
-npm run dev
-```
-
-The application will then be available at the local development URL provided by Vite.
-
-## Purpose
-
-This project is being developed as a college project and for practicing modern frontend development with React.js and Tailwind CSS.
+```text
+src/
+├── assets/
+├── components/
+│   ├── Header.jsx
+│   ├── SummaryCards.jsx
+│   └── TransactionForm.jsx
+├── App.jsx
+├── index.css
+└── main.jsx
