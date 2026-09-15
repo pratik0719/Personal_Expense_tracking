@@ -1,14 +1,26 @@
+import logo from "../assets/finance tracker .png";
+
 function Header() {
   return (
-    <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-          Expense Tracker
-        </h1>
+    <header className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white shadow-sm">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-5 sm:px-6">
+          {/* section for logo image  */}
+          <img
+               src={logo}
+               alt="Finance Tracker Logo"
+              className="h-15 w-15 rounded-4xl object-cover"
+            />
 
-        <p className="text-slate-300 mt-2 text-sm sm:text-base">
-          Manage your income and expenses with ease
-        </p>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            Expense Tracker
+          </h1>
+
+          <p className="mt-1 text-xs text-slate-300 sm:text-sm">
+            Manage your income and expenses with ease
+          </p>
+        </div>
+
       </div>
     </header>
   );
