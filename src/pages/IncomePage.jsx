@@ -38,14 +38,14 @@ function IncomePage({ transactions }) {
       </div>
 
       {/* Summary */}
-      <div className="mb-6 rounded-3xl bg-emerald-600 p-6 text-white shadow-sm">
+      <div className="mb-6 rounded-3xl bg-emerald-600 p-6 text-white shadow-sm  bg-gradient-to-r from-green-800 via-blue-900 to-purple-700 text-white shadow-sm">
 
         <p className="text-sm text-emerald-100">
           Total Income
         </p>
 
         <h2 className="mt-2 text-4xl font-bold">
-          ${totalIncome.toFixed(2)}
+          Rs {totalIncome.toFixed(2)}
         </h2>
 
         <p className="mt-2 text-sm text-emerald-100">

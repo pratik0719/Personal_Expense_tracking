@@ -2,7 +2,7 @@ import logo from "../assets/finance tracker .png";
 
 function Header() {
   return (
-    <header className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white shadow-sm">
+    <header className=" mb-3 rounded-4xl bg-emerald-600 p-2 b-3  bg-gradient-to-r from-green-500 via-slate-900 to-red-500 text-white shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-5 sm:px-6">
           {/* section for logo image  */}
           <img

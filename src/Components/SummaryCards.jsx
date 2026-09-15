@@ -5,16 +5,16 @@ function SummaryCards({ balance = 0, income = 0, expense = 0 }) {
     <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
 
       {/* Balance */}
-      <div className="col-span-2 rounded-3xl bg-slate-950 p-6 text-white shadow-lg md:col-span-1">
-        <p className="text-sm font-medium text-slate-300">
+      <div className="col-span-2 rounded-3xl bg-slate-400 p-6 text-white shadow-lg md:col-span-1 ">
+        <p className="text-sm font-medium text-slate-900">
           Total balance
         </p>
 
         <h2 className="mt-3 text-4xl font-bold tracking-tight">
-          ${balance.toFixed(2)}
+          Rs {balance.toFixed(2)}
         </h2>
 
-        <p className="mt-3 text-sm text-slate-400">
+        <p className="mt-3 text-sm text-slate-800 font-semibold">
           Income minus expenses
         </p>
       </div>
@@ -35,7 +35,7 @@ function SummaryCards({ balance = 0, income = 0, expense = 0 }) {
         </div>
 
         <h2 className="mt-4 text-2xl font-bold text-emerald-600 sm:text-3xl">
-          ${income.toFixed(2)}
+          Rs {income.toFixed(2)}
         </h2>
 
         <p className="mt-2 text-sm text-slate-500">
@@ -63,10 +63,10 @@ function SummaryCards({ balance = 0, income = 0, expense = 0 }) {
         </div>
 
         <h2 className="mt-4 text-2xl font-bold text-rose-600 sm:text-3xl">
-          ${expense.toFixed(2)}
+          Rs {expense.toFixed(2)}
         </h2>
 
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-slate-900 test-rose-600">
           Money out
         </p>
 

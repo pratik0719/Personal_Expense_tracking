@@ -101,10 +101,19 @@ function App() {
             />
           }
         />
+        
 
       </Routes>
-
+            <div className="mt-4 flex justify-center">
+                  <p className="inline-block rounded-md bg-red-600 px-3 py-1 text-sm font-semibold text-white text-center">
+                        <a href="https://pratik-dahal.com.np/" target="_blank" rel="noopener noreferrer">
+                   Own By Pratik Dahal💗🫰
+                 </a>
+                 </p>
+               
+            </div>
     </div>
+    
   );
 }
 

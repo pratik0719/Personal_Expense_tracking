@@ -37,7 +37,7 @@ function ExpensePage({ transactions }) {
       </div>
 
       {/* Summary */}
-      <div className="mb-6 rounded-3xl bg-rose-600 p-6 text-white shadow-sm">
+      <div className="mb-6 rounded-3xl bg-rose-600 p-6 text-white shadow-sm   bg-gradient-to-r from-red-800 via-red-600 to-yellow-500">
 
         <p className="text-sm text-rose-100">
           Total Expenses

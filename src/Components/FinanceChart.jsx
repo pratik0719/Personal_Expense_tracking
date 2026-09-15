@@ -7,7 +7,7 @@ import {
 } from "recharts";
 
 const INCOME_COLOR = "#16a34a";   // Green
-const EXPENSE_COLOR = "#2563eb";  // Blue
+const EXPENSE_COLOR = "#fc1e47";  // Red
 
 function FinanceChart({ transactions = [] }) {
 
@@ -70,12 +70,12 @@ function FinanceChart({ transactions = [] }) {
 
       {/* Chart heading */}
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900">
+        <h2 className="text-xl font-bold text-slate-900 ">
           Income vs Expense
         </h2>
 
         <p className="mt-1 text-sm text-slate-500">
-          Compare the money coming in and going out.
+          Find your financial balance.
         </p>
       </div>
 
@@ -224,12 +224,12 @@ function FinanceChart({ transactions = [] }) {
             <div className="flex items-center justify-between">
 
               <div>
-                <p className="text-sm font-medium text-emerald-700">
+                <p className="text-sm font-medium text-emerald-700 ">
                   Income
                 </p>
 
                 <p className="mt-2 text-3xl font-bold text-emerald-600">
-                  ${totalIncome.toFixed(2)}
+                  Rs {totalIncome.toFixed(2)}
                 </p>
               </div>
 
@@ -244,16 +244,16 @@ function FinanceChart({ transactions = [] }) {
             <div className="flex items-center justify-between">
 
               <div>
-                <p className="text-sm font-medium text-blue-700">
+                <p className="text-sm font-medium text-red-700">
                   Expense
                 </p>
 
-                <p className="mt-2 text-3xl font-bold text-blue-600">
-                  ${totalExpense.toFixed(2)}
+                <p className="mt-2 text-3xl font-bold text-red-600">
+                  Rs   {totalExpense.toFixed(2)}
                 </p>
               </div>
 
-              <div className="h-4 w-4 rounded-full bg-blue-600" />
+              <div className="h-4 w-4 rounded-full bg-red-600" />
 
             </div>
           </div>
