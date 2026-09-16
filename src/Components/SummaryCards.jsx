@@ -1,81 +1,191 @@
 import { Link } from "react-router-dom";
 
-function SummaryCards({ balance = 0, income = 0, expense = 0 }) {
+/**
+ * SummaryCards calculates and displays
+ * the main financial information.
+ *
+ * It shows:
+ * - Balance
+ * - Income
+ * - Expenses
+ * - Savings rate
+ */
+function SummaryCards({ transactions }) {
+  /**
+   * Calculates total income.
+   */
+  const calculateIncome = () => {
+    return transactions
+      .filter(
+        (transaction) =>
+          transaction.type === "income"
+      )
+      .reduce(
+        (total, transaction) =>
+          total + Number(transaction.amount),
+        0
+      );
+  };
+
+  /**
+   * Calculates total expenses.
+   */
+  const calculateExpenses = () => {
+    return transactions
+      .filter(
+        (transaction) =>
+          transaction.type === "expense"
+      )
+      .reduce(
+        (total, transaction) =>
+          total + Number(transaction.amount),
+        0
+      );
+  };
+
+  /**
+   * Formats a number into USD currency.
+   */
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency: "USD",
+      }
+    ).format(amount);
+  };
+
+  const totalIncome = calculateIncome();
+  const totalExpenses = calculateExpenses();
+
+  const totalBalance =
+    totalIncome - totalExpenses;
+
+  const savingsRate =
+    totalIncome > 0
+      ? (
+          (totalBalance / totalIncome) *
+          100
+        ).toFixed(1)
+      : "0.0";
+
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+    <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
       {/* Balance */}
-      <div className="col-span-2 rounded-3xl bg-slate-400 p-6 text-white shadow-lg md:col-span-1 ">
-        <p className="text-sm font-medium text-slate-900">
-          Total balance
-        </p>
+      <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
 
-        <h2 className="mt-3 text-4xl font-bold tracking-tight">
-          Rs {balance.toFixed(2)}
+        <div className="mb-5 flex items-center justify-between">
+          <p className="text-sm font-semibold text-slate-500">
+            Total Balance
+          </p>
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 font-bold text-indigo-600">
+            $
+          </div>
+        </div>
+
+        <h2
+          className={`text-2xl font-bold sm:text-3xl ${
+            totalBalance < 0
+              ? "text-rose-600"
+              : "text-slate-900"
+          }`}
+        >
+          {formatCurrency(totalBalance)}
         </h2>
 
-        <p className="mt-3 text-sm text-slate-800 font-semibold">
-          Income minus expenses
+        <p className="mt-2 text-xs text-slate-400">
+          Current available balance
         </p>
-      </div>
+
+      </article>
 
       {/* Income */}
       <Link
         to="/income"
-        className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm"
+        className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
       >
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-slate-600">
+        <div className="mb-5 flex items-center justify-between">
+
+          <p className="text-sm font-semibold text-slate-500">
             Income
           </p>
 
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 font-bold text-emerald-700">
-            +
-          </span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 font-bold text-emerald-600">
+            ↗
+          </div>
+
         </div>
 
-        <h2 className="mt-4 text-2xl font-bold text-emerald-600 sm:text-3xl">
-          Rs {income.toFixed(2)}
+        <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+          {formatCurrency(totalIncome)}
         </h2>
 
-        <p className="mt-2 text-sm text-slate-500">
-          Money in
-        </p>
-
-        <p className="mt-3 text-xs font-semibold text-emerald-600">
+        <p className="mt-2 text-xs text-emerald-600">
           View income statement →
         </p>
       </Link>
 
-      {/* Expense */}
+      {/* Expenses */}
       <Link
         to="/expenses"
-        className="rounded-3xl border border-rose-100 bg-white p-5 shadow-sm"
+        className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
       >
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-slate-600">
+        <div className="mb-5 flex items-center justify-between">
+
+          <p className="text-sm font-semibold text-slate-500">
             Expenses
           </p>
 
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 font-bold text-rose-700">
-            −
-          </span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 font-bold text-rose-600">
+            ↘
+          </div>
+
         </div>
 
-        <h2 className="mt-4 text-2xl font-bold text-rose-600 sm:text-3xl">
-          Rs {expense.toFixed(2)}
+        <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+          {formatCurrency(totalExpenses)}
         </h2>
 
-        <p className="mt-2 text-sm text-slate-900 test-rose-600">
-          Money out
-        </p>
-
-        <p className="mt-3 text-xs font-semibold text-rose-600">
+        <p className="mt-2 text-xs text-rose-500">
           View expense statement →
         </p>
       </Link>
 
-    </div>
+      {/* Savings Rate */}
+      <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+
+        <div className="mb-5 flex items-center justify-between">
+
+          <p className="text-sm font-semibold text-slate-500">
+            Savings Rate
+          </p>
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 font-bold text-amber-500">
+            ★
+          </div>
+
+        </div>
+
+        <h2
+          className={`text-2xl font-bold sm:text-3xl ${
+            Number(savingsRate) < 0
+              ? "text-rose-600"
+              : "text-slate-900"
+          }`}
+        >
+          {savingsRate}%
+        </h2>
+
+        <p className="mt-2 text-xs text-slate-400">
+          Income remaining after expenses
+        </p>
+
+      </article>
+
+    </section>
   );
 }
 

@@ -1,95 +1,69 @@
-import SummaryCards from "../Components/SummaryCards.jsx";
-import TransactionForm from "../Components/TransactionForm.jsx";
-import TransactionList from "../Components/TransactionList.jsx";
-import FinanceChart from "../Components/FinanceChart.jsx";
+import Header from "../components/Header";
+import SummaryCards from "../components/SummaryCards";
+import FinanceChart from "../components/FinanceChart";
+import TransactionForm from "../components/TransactionForm";
+import TransactionList from "../components/TransactionList";
+
+/**
+ * Dashboard is the main page of the Personal Expense Tracker.
+ *
+ * It combines:
+ * - Dashboard header
+ * - Financial summary cards
+ * - Six-month cash flow chart
+ * - Add transaction form
+ * - Recent transaction history
+ */
 function Dashboard({
   transactions,
   addTransaction,
   deleteTransaction,
-  notice,
-  balance,
-  totalIncome,
-  totalExpense,
 }) {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9">
+    <div className="min-h-screen bg-slate-50">
 
-      {/* Dashboard heading */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mx-auto max-w-[1500px] p-4 sm:p-6 lg:p-8">
 
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
-            Financial overview
-          </p>
+        {/* Main Dashboard Header */}
+        <Header />
 
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
-            Your money, clearly.
-          </h2>
-
-          <p className="mt-2 max-w-xl text-sm text-slate-600">
-            Track your income, spending, and current balance in one place.
-          </p>
-        </div>
-
-        {/* Desktop Add Entry */}
-        <div className="hidden sm:block">
-          <TransactionForm onAddTransaction={addTransaction} />
-        </div>
-
-      </div>
-
-      <SummaryCards
-        balance={balance}
-        income={totalIncome}
-        expense={totalExpense}
-      />
-      
-       
-      {/* Notice */}
-{/*     
-      {notice && (
-        <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3">
-          <p className="text-sm font-medium text-indigo-800">
-            {notice}
-          </p>
-        </div>
-      )}
-   */}
-
-
-      {/* Transactions */}
-      {/* <div className="mt-6">
-        <TransactionList
+        {/* Balance, Income, Expense and Savings Cards */}
+        <SummaryCards
           transactions={transactions}
-          onDelete={deleteTransaction}
         />
-      </div> */}
 
+        {/* Main Dashboard Content */}
+        <div className="mt-6 grid items-start gap-6 xl:grid-cols-[1.35fr_0.65fr]">
 
+          {/* Six-Month Cash Flow Chart */}
+          <FinanceChart
+            transactions={transactions}
+          />
 
-      {/* Expense spending chart */}
-<div className="mt-6">
+          {/* Add Transaction Form */}
+          <div id="transaction-form">
+            <TransactionForm
+              addTransaction={
+                addTransaction
+              }
+            />
+          </div>
 
-  {/* 
-    Pass all transactions to the chart.
-    FinanceChart will select only expense transactions.
-  */}
-  <FinanceChart transactions={transactions} />
+        </div>
 
-</div>
-
-      {/* Mobile Add Entry */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-4 backdrop-blur sm:hidden">
-
-        <div className="mx-auto max-w-md">
-          <TransactionForm onAddTransaction={addTransaction} />
+        {/* Recent Transaction History */}
+        <div className="mt-6">
+          <TransactionList
+            transactions={transactions}
+            deleteTransaction={
+              deleteTransaction
+            }
+          />
         </div>
 
       </div>
 
-      <div className="h-24 sm:hidden" />
-
-    </main>
+    </div>
   );
 }
 

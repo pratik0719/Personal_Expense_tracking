@@ -1,0 +1,103 @@
+PERSONAL EXPENSE TRACKER - PROJECT DETAILS
+==========================================
+
+Project Overview
+----------------
+Personal Expense Tracker is a responsive web application for recording income
+and expenses and viewing a clear financial overview. It is built as a React
+single-page application and uses client-side routes for the dashboard and
+individual income/expense statements.
+
+Main Features
+-------------
+1. Financial dashboard
+   - Displays total balance, total income, and total expenses.
+   - Balance is calculated automatically: Income - Expenses.
+   - Shows a recent transaction history and transaction count.
+
+2. Add transactions
+   - Add either Money In (income) or Money Out (expense).
+   - Enter amount, category, description, and date.
+   - The current date is selected by default.
+   - Validates positive amounts and required category, description, and date.
+   - New transactions appear at the top of the list.
+
+3. Supported categories
+   - Expense: Food, Transport, Shopping, Bills, Entertainment, Health,
+     Education, and Other.
+   - Income: Salary, Freelance, Gift, and Other.
+
+4. Transaction management
+   - Every entry shows its description, category, date, and amount.
+   - Income and expense entries use separate visual styles.
+   - Any individual transaction can be deleted.
+   - Deleting a transaction immediately updates totals and the chart.
+   - An empty-state message is shown when there are no transactions.
+
+5. Financial visualization
+   - Includes a responsive Income vs Expense donut chart.
+   - Shows income, expense, and calculated balance.
+   - Chart tooltips reveal the amount for a hovered section.
+   - A placeholder chart is shown before transaction data exists.
+
+6. Statement pages and navigation
+   - Dashboard route: /
+   - Income statement route: /income
+   - Expense statement route: /expenses
+   - The Income and Expenses summary cards open their relevant statement page.
+   - Each statement page filters and shows only its matching transaction type.
+
+7. Responsive interface
+   - Designed for desktop, tablet, and mobile screens.
+   - Uses touch-friendly controls and responsive layouts.
+   - Includes a custom Finance Tracker logo and application header.
+
+Technology Stack
+----------------
+- React 19 and JSX
+- Vite
+- React Router DOM for navigation
+- Recharts for the donut chart
+- Tailwind CSS and CSS for styling
+- JavaScript, HTML, and npm
+
+Important Components
+--------------------
+- App.jsx: Stores transaction state, calculates totals, and configures routes.
+- Dashboard.jsx: Combines the summary, quick-add form, chart, and list.
+- TransactionForm.jsx: Handles transaction input, validation, and submission.
+- TransactionList.jsx / TransactionItem.jsx: Display and delete transactions.
+- SummaryCards.jsx: Displays balance, income, and expense totals.
+- FinanceChart.jsx: Renders the Income vs Expense donut chart.
+- IncomePage.jsx / ExpensePage.jsx: Display filtered statements.
+- Header.jsx: Displays the logo, title, and subtitle.
+
+How to Run the Project
+----------------------
+1. Install Node.js and npm.
+2. In the project folder, run: npm install
+3. Start the development server: npm run dev
+4. Open the local URL provided by Vite (usually http://localhost:5173/).
+
+Available npm Commands
+----------------------
+- npm run dev     Starts the development server.
+- npm run build   Creates a production build.
+- npm run lint    Checks the project with Oxlint.
+- npm run preview Previews the production build locally.
+
+Current Limitation
+------------------
+Transactions are currently kept only in React state. They are removed when the
+browser page is refreshed because localStorage and backend persistence are not
+implemented yet.
+
+Possible Future Improvements
+----------------------------
+- Save data with localStorage or a database.
+- Edit transactions.
+- Filter, search, and sort transactions.
+- Add monthly summaries and category-based charts.
+- Add budget limits and warning notifications.
+- Add CSV/PDF export, a currency selector, dark mode, authentication, and
+  device synchronization.

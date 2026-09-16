@@ -1,266 +1,336 @@
+import { useMemo } from "react";
+
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
   ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
-const INCOME_COLOR = "#16a34a";   // Green
-const EXPENSE_COLOR = "#fc1e47";  // Red
+/**
+ * FinanceChart displays the user's cash flow
+ * for the most recent six months.
+ *
+ * It compares:
+ * - Monthly income
+ * - Monthly expenses
+ *
+ * All chart data comes from real transactions.
+ * No sample data is used.
+ */
+function FinanceChart({ transactions }) {
+  /**
+   * Formats a number into USD currency.
+   *
+   * Example:
+   * 1500 becomes $1,500.00
+   */
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
 
-function FinanceChart({ transactions = [] }) {
+  /**
+   * Creates the most recent six-month range.
+   *
+   * Example:
+   * Apr
+   * May
+   * Jun
+   * Jul
+   * Aug
+   * Sep
+   */
+  const getLastSixMonths = () => {
+    const months = [];
+    const currentDate = new Date();
 
-  // Keep only income transactions
-  const incomeTransactions = transactions.filter(
-    (transaction) => transaction.type === "income"
+    for (let index = 5; index >= 0; index -= 1) {
+      const monthDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - index,
+        1
+      );
+
+      months.push({
+        month: monthDate.toLocaleDateString("en-US", {
+          month: "short",
+        }),
+
+        year: monthDate.getFullYear(),
+
+        monthNumber: monthDate.getMonth(),
+      });
+    }
+
+    return months;
+  };
+
+  /**
+   * Builds the chart data from real transactions.
+   *
+   * Each transaction is placed into its matching month
+   * and then added to either income or expenses.
+   */
+  const chartData = useMemo(() => {
+    const months = getLastSixMonths();
+
+    return months.map((monthItem) => {
+      const monthlyTransactions = transactions.filter(
+        (transaction) => {
+          const transactionDate = new Date(
+            `${transaction.date}T00:00:00`
+          );
+
+          return (
+            transactionDate.getFullYear() ===
+              monthItem.year &&
+            transactionDate.getMonth() ===
+              monthItem.monthNumber
+          );
+        }
+      );
+
+      const income = monthlyTransactions
+        .filter(
+          (transaction) =>
+            transaction.type === "income"
+        )
+        .reduce(
+          (total, transaction) =>
+            total + Number(transaction.amount),
+          0
+        );
+
+      const expenses = monthlyTransactions
+        .filter(
+          (transaction) =>
+            transaction.type === "expense"
+        )
+        .reduce(
+          (total, transaction) =>
+            total + Number(transaction.amount),
+          0
+        );
+
+      return {
+        month: monthItem.month,
+        income,
+        expenses,
+      };
+    });
+  }, [transactions]);
+
+  /**
+   * Checks whether at least one real transaction
+   * exists inside the displayed six-month period.
+   */
+  const hasChartData = chartData.some(
+    (monthItem) =>
+      monthItem.income > 0 ||
+      monthItem.expenses > 0
   );
 
-  // Keep only expense transactions
-  const expenseTransactions = transactions.filter(
-    (transaction) => transaction.type === "expense"
-  );
+  /**
+   * Customizes values displayed inside the
+   * Recharts tooltip.
+   */
+  const tooltipFormatter = (
+    value,
+    name
+  ) => {
+    const label =
+      name === "income"
+        ? "Income"
+        : "Expenses";
 
-  // Calculate total income
-  const totalIncome = incomeTransactions.reduce(
-    (total, transaction) =>
-      total + Number(transaction.amount),
-    0
-  );
+    return [
+      formatCurrency(value),
+      label,
+    ];
+  };
 
-  // Calculate total expense
-  const totalExpense = expenseTransactions.reduce(
-    (total, transaction) =>
-      total + Number(transaction.amount),
-    0
-  );
+  /**
+   * Converts large Y-axis numbers into shorter labels.
+   *
+   * Example:
+   * 1000 becomes $1k
+   * 2500 becomes $2.5k
+   */
+  const formatYAxis = (value) => {
+    if (value >= 1000000) {
+      return `$${(
+        value / 1000000
+      ).toFixed(1)}M`;
+    }
 
-  // Check if real data exists
-  const hasData = totalIncome > 0 || totalExpense > 0;
+    if (value >= 1000) {
+      return `$${(
+        value / 1000
+      ).toFixed(1)}k`;
+    }
 
-  // Real chart data
-  // If no transactions exist, show a 50/50 placeholder
-  const chartData = hasData
-    ? [
-        {
-          name: "Income",
-          value: totalIncome,
-        },
-        {
-          name: "Expense",
-          value: totalExpense,
-        },
-      ].filter((item) => item.value > 0)
-    : [
-        {
-          name: "Income",
-          value: 50,
-        },
-        {
-          name: "Expense",
-          value: 50,
-        },
-      ];
-
-  // Calculate balance
-  const balance = totalIncome - totalExpense;
+    return `$${value}`;
+  };
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 
-      {/* Chart heading */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900 ">
-          Income vs Expense
-        </h2>
+      {/* Chart Heading */}
+      <div className="mb-6 flex items-start justify-between gap-4">
 
-        <p className="mt-1 text-sm text-slate-500">
-          Find your financial balance.
-        </p>
+        <div>
+          <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+            Cash Flow Overview
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Income vs expenses over the last 6 months.
+          </p>
+        </div>
+
+        <div className="hidden rounded-xl bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-600 sm:block">
+          Last 6 months
+        </div>
+
       </div>
 
+      {/* Display the chart when transaction data exists */}
+      {hasChartData ? (
+        <div className="h-[320px] w-full sm:h-[350px]">
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-center">
-
-        {/* =========================
-            LEFT SIDE - DONUT CHART
-        ========================== */}
-        <div className="relative h-[300px] w-full">
-
-          <ResponsiveContainer width="100%" height="100%">
-
-            <PieChart
-              // Prevent focus box around chart
-              style={{ outline: "none" }}
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+          >
+            <BarChart
+              data={chartData}
+              margin={{
+                top: 10,
+                right: 5,
+                left: -15,
+                bottom: 0,
+              }}
+              barGap={6}
             >
 
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
+              {/* Horizontal chart grid */}
+              <CartesianGrid
+                stroke="#e2e8f0"
+                strokeDasharray="4 4"
+                vertical={false}
+              />
 
-                cx="50%"
-                cy="50%"
-
-                innerRadius={70}
-                outerRadius={105}
-                paddingAngle={3}
-
-                // Prevent focus outline when clicked
-                tabIndex={-1}
-
-                // Makes the cursor look interactive
-                style={{
-                  outline: "none",
-                  cursor: "pointer",
+              {/* Month labels */}
+              <XAxis
+                dataKey="month"
+                axisLine={false}
+                tickLine={false}
+                tick={{
+                  fill: "#64748b",
+                  fontSize: 12,
                 }}
-              >
+                dy={10}
+              />
 
-                {chartData.map((item) => (
-                  <Cell
-                    key={item.name}
+              {/* Money values */}
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{
+                  fill: "#94a3b8",
+                  fontSize: 11,
+                }}
+                tickFormatter={
+                  formatYAxis
+                }
+              />
 
-                    fill={
-                      item.name === "Income"
-                        ? INCOME_COLOR
-                        : EXPENSE_COLOR
-                    }
-
-                    fillOpacity={hasData ? 1 : 0.35}
-
-                    // Remove click/focus outline
-                    style={{
-                      outline: "none",
-                      cursor: "pointer",
-                    }}
-
-                    tabIndex={-1}
-                  />
-                ))}
-
-              </Pie>
-
-
-              {/* 
-                Tooltip appears when hovering
-                over a chart slice
-              */}
+              {/* Hover information */}
               <Tooltip
-                cursor={false}
-
-                formatter={(value, name) => {
-
-                  // Don't show fake placeholder values
-                  if (!hasData) {
-                    return ["No data yet", name];
-                  }
-
-                  return [
-                    `$${Number(value).toFixed(2)}`,
-                    name,
-                  ];
+                formatter={
+                  tooltipFormatter
+                }
+                cursor={{
+                  fill: "#f8fafc",
                 }}
-
                 contentStyle={{
                   borderRadius: "12px",
                   border: "1px solid #e2e8f0",
                   boxShadow:
-                    "0 6px 20px rgba(15, 23, 42, 0.08)",
-                }}
-
-                labelStyle={{
-                  fontWeight: 600,
+                    "0 10px 25px rgba(15, 23, 42, 0.08)",
                 }}
               />
 
-            </PieChart>
+              {/* Chart labels */}
+              <Legend
+                iconType="circle"
+                wrapperStyle={{
+                  paddingTop: "20px",
+                  fontSize: "12px",
+                }}
+                formatter={(value) =>
+                  value === "income"
+                    ? "Income"
+                    : "Expenses"
+                }
+              />
 
+              {/* Income bars */}
+              <Bar
+                dataKey="income"
+                fill="#6366f1"
+                radius={[
+                  7,
+                  7,
+                  0,
+                  0,
+                ]}
+                maxBarSize={34}
+              />
+
+              {/* Expense bars */}
+              <Bar
+                dataKey="expenses"
+                fill="#86d7b5"
+                radius={[
+                  7,
+                  7,
+                  0,
+                  0,
+                ]}
+                maxBarSize={34}
+              />
+
+            </BarChart>
           </ResponsiveContainer>
 
+        </div>
+      ) : (
 
-          {/* Center content */}
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        /* Empty chart state */
+        <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 text-center">
 
-            {hasData ? (
-              <>
-                <p className="text-sm text-slate-500">
-                  Balance
-                </p>
-
-                <p
-                  className={`mt-1 text-2xl font-bold ${
-                    balance >= 0
-                      ? "text-slate-900"
-                      : "text-rose-600"
-                  }`}
-                >
-                  ${balance.toFixed(2)}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-slate-500">
-                  No data yet
-                </p>
-
-                <p className="mt-1 text-xs text-slate-400">
-                  Add a transaction
-                </p>
-              </>
-            )}
-
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-2xl text-indigo-600">
+            ▥
           </div>
+
+          <h3 className="font-semibold text-slate-700">
+            No cash flow data yet
+          </h3>
+
+          <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">
+            Add an income or expense transaction and your monthly chart will appear here.
+          </p>
 
         </div>
-
-
-        {/* =========================
-            RIGHT SIDE - TOTALS
-        ========================== */}
-        <div className="space-y-4">
-
-          {/* Income */}
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-sm font-medium text-emerald-700 ">
-                  Income
-                </p>
-
-                <p className="mt-2 text-3xl font-bold text-emerald-600">
-                  Rs {totalIncome.toFixed(2)}
-                </p>
-              </div>
-
-              <div className="h-4 w-4 rounded-full bg-green-600" />
-
-            </div>
-          </div>
-
-
-          {/* Expense */}
-          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-sm font-medium text-red-700">
-                  Expense
-                </p>
-
-                <p className="mt-2 text-3xl font-bold text-red-600">
-                  Rs   {totalExpense.toFixed(2)}
-                </p>
-              </div>
-
-              <div className="h-4 w-4 rounded-full bg-red-600" />
-
-            </div>
-          </div>
-
-        </div>
-
-      </div>
+      )}
 
     </section>
   );

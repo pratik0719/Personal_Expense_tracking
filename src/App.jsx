@@ -1,119 +1,278 @@
-import { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-import Header from "./Components/Header.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import IncomePage from "./pages/IncomePage.jsx";
-import ExpensePage from "./pages/ExpensePage.jsx";
+import {
+  Route,
+  Routes,
+} from "react-router-dom";
 
+import AppLayout from "./components/AppLayout";
+
+import Dashboard from "./pages/Dashboard";
+import IncomePage from "./pages/IncomePage";
+import ExpensePage from "./pages/ExpensePage";
+import BudgetsPage from "./pages/BudgetsPage";
+import GoalsPage from "./pages/GoalsPage";
+import SettingsPage from "./pages/SettingsPage";
+
+import "./App.css";
+
+/**
+ * App is the main controller of the Personal Expense Tracker.
+ *
+ * Responsibilities:
+ * - Stores transactions.
+ * - Stores budgets.
+ * - Loads saved data from localStorage.
+ * - Saves data into localStorage.
+ * - Adds and deletes transactions.
+ * - Adds and deletes budgets.
+ * - Controls application routes.
+ */
 function App() {
-  const [transactions, setTransactions] = useState([]);
-  const [notice, setNotice] = useState("");
+  /**
+   * Loads saved transaction data.
+   *
+   * If no transaction data exists,
+   * the application starts with an empty array.
+   */
+  const [transactions, setTransactions] =
+    useState(() => {
+      const savedTransactions =
+        localStorage.getItem(
+          "expenseTrackerTransactions"
+        );
 
-  function addTransaction(newTransaction) {
-    setTransactions((previous) => [
-      newTransaction,
-      ...previous,
-    ]);
+      if (!savedTransactions) {
+        return [];
+      }
 
-    setNotice(
-      `Added: ${newTransaction.description}. Totals updated.`
+      try {
+        return JSON.parse(
+          savedTransactions
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load transactions:",
+          error
+        );
+
+        return [];
+      }
+    });
+
+  /**
+   * Loads saved budget data.
+   *
+   * If no budget data exists,
+   * the application starts with an empty array.
+   */
+  const [budgets, setBudgets] =
+    useState(() => {
+      const savedBudgets =
+        localStorage.getItem(
+          "expenseTrackerBudgets"
+        );
+
+      if (!savedBudgets) {
+        return [];
+      }
+
+      try {
+        return JSON.parse(
+          savedBudgets
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load budgets:",
+          error
+        );
+
+        return [];
+      }
+    });
+
+  /**
+   * Saves transactions to localStorage
+   * whenever the transaction list changes.
+   */
+  useEffect(() => {
+    localStorage.setItem(
+      "expenseTrackerTransactions",
+      JSON.stringify(transactions)
     );
-  }
+  }, [transactions]);
 
-  function deleteTransaction(id) {
-    setTransactions((previous) =>
-      previous.filter(
-        (transaction) => transaction.id !== id
-      )
+  /**
+   * Saves budgets to localStorage
+   * whenever the budget list changes.
+   */
+  useEffect(() => {
+    localStorage.setItem(
+      "expenseTrackerBudgets",
+      JSON.stringify(budgets)
     );
+  }, [budgets]);
 
-    setNotice("Transaction removed. Totals updated.");
-  }
+  /**
+   * Adds a new transaction to
+   * the beginning of the transaction list.
+   */
+  const addTransaction = (
+    transaction
+  ) => {
+    const newTransaction = {
+      ...transaction,
+      id: Date.now(),
+    };
 
-  const incomeCents = transactions
-    .filter(
-      (transaction) =>
-        transaction.type === "income"
-    )
-    .reduce(
-      (total, transaction) =>
-        total + Math.round(transaction.amount * 100),
-      0
+    setTransactions(
+      (previousTransactions) => [
+        newTransaction,
+        ...previousTransactions,
+      ]
     );
+  };
 
-  const expenseCents = transactions
-    .filter(
-      (transaction) =>
-        transaction.type === "expense"
-    )
-    .reduce(
-      (total, transaction) =>
-        total + Math.round(transaction.amount * 100),
-      0
+  /**
+   * Deletes a transaction using
+   * its unique transaction ID.
+   */
+  const deleteTransaction = (id) => {
+    setTransactions(
+      (previousTransactions) =>
+        previousTransactions.filter(
+          (transaction) =>
+            transaction.id !== id
+        )
     );
+  };
 
-  const totalIncome = incomeCents / 100;
-  const totalExpense = expenseCents / 100;
+  /**
+   * Adds a new category budget.
+   */
+  const addBudget = (budget) => {
+    const newBudget = {
+      ...budget,
+      id: Date.now(),
+    };
 
-  const balance =
-    (incomeCents - expenseCents) / 100;
+    setBudgets(
+      (previousBudgets) => [
+        newBudget,
+        ...previousBudgets,
+      ]
+    );
+  };
+
+  /**
+   * Deletes a budget using
+   * its unique budget ID.
+   */
+  const deleteBudget = (id) => {
+    setBudgets(
+      (previousBudgets) =>
+        previousBudgets.filter(
+          (budget) =>
+            budget.id !== id
+        )
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <Routes>
 
-      <Header />
-
-      <Routes>
+      {/* Shared Application Layout */}
+      <Route element={<AppLayout />}>
 
         {/* Dashboard */}
         <Route
           path="/"
           element={
             <Dashboard
-              transactions={transactions}
-              addTransaction={addTransaction}
-              deleteTransaction={deleteTransaction}
-              notice={notice}
-              balance={balance}
-              totalIncome={totalIncome}
-              totalExpense={totalExpense}
+              transactions={
+                transactions
+              }
+              addTransaction={
+                addTransaction
+              }
+              deleteTransaction={
+                deleteTransaction
+              }
             />
           }
         />
 
-        {/* Income */}
+        {/* Income Statement */}
         <Route
           path="/income"
           element={
             <IncomePage
-              transactions={transactions}
+              transactions={
+                transactions
+              }
+              deleteTransaction={
+                deleteTransaction
+              }
             />
           }
         />
 
-        {/* Expenses */}
+        {/* Expense Statement */}
         <Route
           path="/expenses"
           element={
             <ExpensePage
-              transactions={transactions}
+              transactions={
+                transactions
+              }
+              deleteTransaction={
+                deleteTransaction
+              }
             />
           }
         />
-        
 
-      </Routes>
-            <div className="mt-4 flex justify-center">
-                  <p className="inline-block rounded-md bg-red-600 px-3 py-1 text-sm font-semibold text-white text-center">
-                        <a href="https://pratik-dahal.com.np/" target="_blank" rel="noopener noreferrer">
-                   Own By Pratik Dahal💗🫰
-                 </a>
-                 </p>
-               
-            </div>
-    </div>
-    
+        {/* Monthly Budget Management */}
+        <Route
+          path="/budgets"
+          element={
+            <BudgetsPage
+              budgets={budgets}
+              transactions={
+                transactions
+              }
+              addBudget={
+                addBudget
+              }
+              deleteBudget={
+                deleteBudget
+              }
+            />
+          }
+        />
+
+        {/* Savings Goals */}
+        <Route
+          path="/goals"
+          element={
+            <GoalsPage />
+          }
+        />
+
+        {/* Application Settings */}
+        <Route
+          path="/settings"
+          element={
+            <SettingsPage />
+          }
+        />
+
+      </Route>
+
+    </Routes>
   );
 }
 

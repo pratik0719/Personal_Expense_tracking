@@ -1,66 +1,105 @@
-function TransactionItem({ transaction, onDelete }) {
-  const isIncome = transaction.type === "income";
+/**
+ * TransactionItem displays one individual transaction.
+ *
+ * It shows:
+ * - Transaction type
+ * - Description
+ * - Category
+ * - Date
+ * - Amount
+ * - Delete button
+ */
+function TransactionItem({
+  transaction,
+  deleteTransaction,
+}) {
+  /**
+   * Formats a transaction amount into USD currency.
+   */
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency: "USD",
+      }
+    ).format(amount);
+  };
 
-  const formattedAmount = transaction.amount.toLocaleString(
-    "en-US",
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+  /**
+   * Deletes the current transaction
+   * after asking the user for confirmation.
+   */
+  const handleDelete = () => {
+    const confirmDelete = window.confirm(
+      `Delete "${transaction.description}"?`
+    );
+
+    if (confirmDelete) {
+      deleteTransaction(transaction.id);
     }
-  );
+  };
+
+  const isIncome =
+    transaction.type === "income";
 
   return (
-    <li className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm">
+    <article className="grid grid-cols-[44px_1fr_auto] items-center gap-3 border-b border-slate-100 py-4 last:border-0 sm:grid-cols-[44px_1fr_auto_auto]">
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Transaction Icon */}
+      <div
+        className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg font-bold ${
+          isIncome
+            ? "bg-emerald-50 text-emerald-600"
+            : "bg-rose-50 text-rose-600"
+        }`}
+      >
+        {isIncome ? "↗" : "↘"}
+      </div>
 
-        {/* Left side */}
-        <div className="min-w-0">
+      {/* Transaction Details */}
+      <div className="min-w-0">
 
-          <h3 className="break-words font-semibold text-slate-900">
-            {transaction.description}
-          </h3>
+        <h3 className="truncate text-sm font-semibold text-slate-800">
+          {transaction.description}
+        </h3>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-
-            <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-              {transaction.category}
-            </span>
-
-            <span className="text-xs text-slate-500">
-              {transaction.date}
-            </span>
-
-          </div>
-
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
-
-          <p
-            className={`text-lg font-bold ${
-              isIncome
-                ? "text-emerald-600"
-                : "text-rose-600"
-            }`}
-          >
-            {isIncome ? "+" : "-"}${formattedAmount}
-          </p>
-
-          <button
-            type="button"
-            onClick={() => onDelete(transaction.id)}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50 hover:text-rose-700"
-          >
-            Delete
-          </button>
-
-        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          {transaction.category}
+        </p>
 
       </div>
 
-    </li>
+      {/* Transaction Date */}
+      <p className="hidden text-xs text-slate-400 sm:block">
+        {transaction.date}
+      </p>
+
+      {/* Amount and Delete */}
+      <div className="text-right">
+
+        <p
+          className={`text-sm font-bold ${
+            isIncome
+              ? "text-emerald-600"
+              : "text-rose-600"
+          }`}
+        >
+          {isIncome ? "+" : "-"}
+          {formatCurrency(transaction.amount)}
+        </p>
+
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="mt-1 text-xs text-slate-400 transition hover:text-rose-600"
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </article>
   );
 }
 
