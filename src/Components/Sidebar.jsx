@@ -134,30 +134,6 @@ function Sidebar() {
 
         </nav>
 
-        {/* Sidebar Bottom Information */}
-        <div className="mt-auto rounded-2xl border border-slate-800 bg-slate-900 p-4">
-
-          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400">
-            $
-          </div>
-
-          <h3 className="text-sm font-semibold text-white">
-            Control your spending
-          </h3>
-
-          <p className="mt-2 text-xs leading-5 text-slate-400">
-            Create budgets and track how much you spend every month.
-          </p>
-
-          <NavLink
-            to="/budgets"
-            className="mt-4 block rounded-xl bg-white px-4 py-2.5 text-center text-xs font-semibold text-slate-900 transition hover:bg-slate-100"
-          >
-            Review Budget
-          </NavLink>
-
-        </div>
-
       </aside>
 
 
