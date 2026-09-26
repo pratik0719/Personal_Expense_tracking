@@ -157,8 +157,8 @@ function BudgetForm({
           <input
             id="budget-limit"
             type="number"
-            min="500"
-            step="1000"
+            min="1"
+            step="1"
             value={limit}
             onChange={(event) =>
               setLimit(

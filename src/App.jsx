@@ -48,14 +48,11 @@ function App() {
       }
 
       try {
-        return JSON.parse(
-          savedTransactions
-        );
+        const parsed = JSON.parse(savedTransactions);
+
+        return Array.isArray(parsed) ? parsed : [];
       } catch (error) {
-        console.error(
-          "Failed to load transactions:",
-          error
-        );
+        console.error("Failed to load transactions:", error);
 
         return [];
       }
@@ -79,14 +76,11 @@ function App() {
       }
 
       try {
-        return JSON.parse(
-          savedBudgets
-        );
+        const parsed = JSON.parse(savedBudgets);
+
+        return Array.isArray(parsed) ? parsed : [];
       } catch (error) {
-        console.error(
-          "Failed to load budgets:",
-          error
-        );
+        console.error("Failed to load budgets:", error);
 
         return [];
       }

@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 /**
  * MonthFilter allows users to select
  * which month and year they want to view.
@@ -18,11 +16,13 @@ function MonthFilter({
    * Current year and previous years
    * are displayed.
    */
+  const currentYear = new Date().getFullYear();
+
   const years = [
-    2024,
-    2025,
-    2026,
-    2027,
+    currentYear - 1,
+    currentYear,
+    currentYear + 1,
+    currentYear + 2,
   ];
 
 

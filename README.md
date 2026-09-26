@@ -516,7 +516,7 @@ Expense_tracking/
 |   |   |-- react.svg
 |   |   `-- vite.svg
 |   |
-|   |-- Components/
+|   |-- components/
 |   |   |-- AppLayout.jsx
 |   |   |-- BudgetCard.jsx
 |   |   |-- BudgetForm.jsx
@@ -548,7 +548,7 @@ Expense_tracking/
 `-- vite.config.js
 
 
-> Important: The component directory is named `Components` with a capital `C`. Import paths must use the same capitalization.
+> Important: The component directory is named `components` with a lowercase `c`. Import paths must use the same capitalization.
 
 
 ## Component Responsibilities
