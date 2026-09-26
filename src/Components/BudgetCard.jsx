@@ -16,14 +16,14 @@ function BudgetCard({
   deleteBudget,
 }) {
   /**
-   * Formats numbers into USD currency.
+   * Formats numbers into NPR currency.
    */
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat(
-      "en-US",
+      "en-IN",
       {
         style: "currency",
-        currency: "USD",
+        currency: "NPR",
       }
     ).format(amount);
   };

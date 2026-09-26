@@ -1,5 +1,11 @@
 import { useState } from "react";
 
+/**
+ * Categories that are allowed to have a budget.
+ *
+ * Only expense categories are included,
+ * because budgets track spending.
+ */
 const budgetCategories = [
   "Food",
   "Transport",
@@ -19,9 +25,18 @@ function BudgetForm({
   addBudget,
   budgets,
 }) {
+  /**
+   * Holds the selected budget category.
+   * Defaults to the first expense category.
+   */
   const [category, setCategory] =
     useState("Food");
 
+  /**
+   * Holds the entered monthly limit
+   * as a string so the input can stay
+   * empty while typing.
+   */
   const [limit, setLimit] =
     useState("");
 

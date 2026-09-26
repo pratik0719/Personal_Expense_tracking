@@ -14,14 +14,14 @@ function TransactionItem({
   deleteTransaction,
 }) {
   /**
-   * Formats a transaction amount into USD currency.
+   * Formats a transaction amount into NPR currency.
    */
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat(
-      "en-US",
+      "en-IN",
       {
         style: "currency",
-        currency: "USD",
+        currency: "NPR",
       }
     ).format(amount);
   };

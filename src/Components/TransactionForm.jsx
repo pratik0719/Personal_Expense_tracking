@@ -21,11 +21,33 @@ function TransactionForm({ addTransaction }) {
   };
 
   const [type, setType] = useState("expense");
+
+  /**
+   * Holds the entered amount as a string
+   * so the input can stay empty while typing.
+   */
   const [amount, setAmount] = useState("");
+
+  /**
+   * Holds the selected category.
+   * Defaults to the first expense category.
+   */
   const [category, setCategory] = useState("Food");
+
+  /**
+   * Holds the transaction description.
+   */
   const [description, setDescription] = useState("");
+
+  /**
+   * Holds the transaction date.
+   * Defaults to today's date.
+   */
   const [date, setDate] = useState(getTodayDate());
 
+  /**
+   * Categories available for expense transactions.
+   */
   const expenseCategories = [
     "Food",
     "Transport",
@@ -37,6 +59,9 @@ function TransactionForm({ addTransaction }) {
     "Other",
   ];
 
+  /**
+   * Categories available for income transactions.
+   */
   const incomeCategories = [
     "Salary",
     "Freelance",
@@ -114,6 +139,10 @@ function TransactionForm({ addTransaction }) {
     setDate(getTodayDate());
   };
 
+  /**
+   * Picks the category list that matches
+   * the currently selected transaction type.
+   */
   const categories =
     type === "income"
       ? incomeCategories

@@ -14,8 +14,6 @@ import Dashboard from "./pages/Dashboard";
 import IncomePage from "./pages/IncomePage";
 import ExpensePage from "./pages/ExpensePage";
 import BudgetsPage from "./pages/BudgetsPage";
-import GoalsPage from "./pages/GoalsPage";
-import SettingsPage from "./pages/SettingsPage";
 
 import "./App.css";
 
@@ -251,22 +249,6 @@ function App() {
                 deleteBudget
               }
             />
-          }
-        />
-
-        {/* Savings Goals */}
-        <Route
-          path="/goals"
-          element={
-            <GoalsPage />
-          }
-        />
-
-        {/* Application Settings */}
-        <Route
-          path="/settings"
-          element={
-            <SettingsPage />
           }
         />
 

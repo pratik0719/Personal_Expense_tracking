@@ -80,14 +80,14 @@ function BudgetsPage({
 
   /**
    * Formats monetary values into
-   * USD currency.
+   * NPR currency.
    */
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat(
-      "en-US",
+      "en-IN",
       {
         style: "currency",
-        currency: "USD",
+        currency: "NPR",
       }
     ).format(amount);
   };

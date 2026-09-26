@@ -44,14 +44,14 @@ function SummaryCards({ transactions }) {
   };
 
   /**
-   * Formats a number into USD currency.
+   * Formats a number into NPR currency.
    */
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat(
-      "en-US",
+      "en-IN",
       {
         style: "currency",
-        currency: "USD",
+        currency: "NPR",
       }
     ).format(amount);
   };
@@ -81,8 +81,8 @@ function SummaryCards({ transactions }) {
             Total Balance
           </p>
 
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 font-bold text-indigo-600">
-            $
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 font-bold text-indigo-600 text-xs">
+            NPR
           </div>
         </div>
 

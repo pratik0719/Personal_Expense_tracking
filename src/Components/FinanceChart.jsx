@@ -24,15 +24,15 @@ import {
  */
 function FinanceChart({ transactions }) {
   /**
-   * Formats a number into USD currency.
+   * Formats a number into NPR currency.
    *
    * Example:
-   * 1500 becomes $1,500.00
+   * 1500 becomes NPR 1,500.00
    */
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "USD",
+      currency: "NPR",
     }).format(amount);
   };
 
@@ -160,23 +160,23 @@ function FinanceChart({ transactions }) {
    * Converts large Y-axis numbers into shorter labels.
    *
    * Example:
-   * 1000 becomes $1k
-   * 2500 becomes $2.5k
+   * 1000 becomes NPR 1k
+   * 2500 becomes NPR 2.5k
    */
   const formatYAxis = (value) => {
     if (value >= 1000000) {
-      return `$${(
+      return `NPR ${(
         value / 1000000
       ).toFixed(1)}M`;
     }
 
     if (value >= 1000) {
-      return `$${(
+      return `NPR ${(
         value / 1000
       ).toFixed(1)}k`;
     }
 
-    return `$${value}`;
+    return `NPR ${value}`;
   };
 
   return (

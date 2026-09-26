@@ -35,14 +35,14 @@ function IncomePage({
   };
 
   /**
-   * Formats a number into USD currency.
+   * Formats a number into NPR currency.
    */
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat(
-      "en-US",
+      "en-IN",
       {
         style: "currency",
-        currency: "USD",
+        currency: "NPR",
       }
     ).format(amount);
   };
@@ -108,6 +108,7 @@ function IncomePage({
           deleteTransaction={
             deleteTransaction
           }
+          showCategoryFilter={true}
         />
 
       </div>

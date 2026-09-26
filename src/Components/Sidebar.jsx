@@ -1,10 +1,18 @@
 import { NavLink } from "react-router-dom";
 
 /**
+ * Application logo image.
+ *
+ * Imported from src/assets so Vite can
+ * bundle it and provide a hashed URL.
+ */
+import financeTrackerLogo from "../assets/finance-tracker-logo.png";
+
+/**
  * Sidebar displays the application's main navigation.
  *
  * Desktop:
- * Shows a fixed left sidebar.
+ * Shows a fixed left sidebar with the brand logo.
  *
  * Mobile:
  * Shows a fixed navigation bar at the bottom.
@@ -34,16 +42,6 @@ function Sidebar() {
       name: "Budgets",
       path: "/budgets",
       icon: "◔",
-    },
-    {
-      name: "Goals",
-      path: "/goals",
-      icon: "◎",
-    },
-    {
-      name: "Settings",
-      path: "/settings",
-      icon: "⚙",
     },
   ];
 
@@ -86,17 +84,20 @@ function Sidebar() {
 
   return (
     <>
-      {/* =================================
+      {/* ================================= 
           DESKTOP SIDEBAR
       ================================= */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-slate-950 p-6 lg:flex">
 
-        {/* Application Logo */}
+        {/* Application Logo and Brand Name */}
         <div className="mb-10 flex items-center gap-3">
 
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-emerald-400 font-bold text-white shadow-lg shadow-indigo-950">
-            EF
-          </div>
+          {/* Brand logo image from src/assets */}
+          <img
+            src={financeTrackerLogo}
+            alt="Expense Tracker logo"
+            className="h-11 w-11 rounded-2xl bg-white object-contain p-1 shadow-lg shadow-indigo-950"
+          />
 
           <div>
             <h1 className="font-bold text-white">
@@ -140,11 +141,9 @@ function Sidebar() {
       {/* =================================
           MOBILE BOTTOM NAVIGATION
       ================================= */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-5 border-t border-slate-200 bg-white/95 px-2 py-2 shadow-[0_-5px_20px_rgba(15,23,42,0.05)] backdrop-blur-md lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 border-t border-slate-200 bg-white/95 px-2 py-2 shadow-[0_-5px_20px_rgba(15,23,42,0.05)] backdrop-blur-md lg:hidden">
 
-        {navigationItems
-          .slice(0, 5)
-          .map((item) => (
+        {navigationItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
