@@ -84,6 +84,35 @@ function Sidebar() {
 
   return (
     <>
+      {/* =================================
+          MOBILE TOP BAR
+
+          Visible only below the lg breakpoint,
+          where the desktop sidebar is hidden.
+          Reuses the same brand logo image.
+      ================================= */}
+      <header className="sticky top-0 z-40 flex items-center gap-3 bg-slate-950 px-4 py-3 shadow-lg shadow-indigo-950/20 lg:hidden">
+
+        {/* Brand logo image from src/assets */}
+        <img
+          src={financeTrackerLogo}
+          alt="Expense Tracker logo"
+          className="h-9 w-9 rounded-xl bg-white object-contain p-1"
+        />
+
+        <div>
+          <h1 className="text-base font-bold text-white">
+            ExpenseFlow
+          </h1>
+
+          <p className="text-[11px] text-slate-500">
+            Personal Finance
+          </p>
+        </div>
+
+      </header>
+
+
       {/* ================================= 
           DESKTOP SIDEBAR
       ================================= */}
