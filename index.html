@@ -3,11 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="description" content="Track your income, expenses and monthly budgets." />
+
+    <!--
+      iPhone/iPad Safari zooms in when a form field is focused and does not zoom back out.
+      Capping the scale stops that; iOS still lets people pinch-zoom manually, so this
+      costs no accessibility. Applied to iOS only, because Android would block pinch-zoom.
+    -->
+    <script>
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+        document
+          .querySelector('meta[name="viewport"]')
+          .setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content");
+      }
+    </script>
+
+    <!-- Matches the app background so the browser chrome blends in -->
+    <meta name="theme-color" content="#06060d" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ExpenseFlow" />
 
     <!-- Application favicon: the Expense Tracker logo served from /public -->
-    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" href="/pwa-64x64.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
 
-    <title>Personal Expense Tracker</title>
+    <title>Expense</title>
   </head>
   <body>
     <div id="root"></div>

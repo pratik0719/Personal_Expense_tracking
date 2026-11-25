@@ -1,307 +1,175 @@
 import { useState } from "react";
 
+import { useBrand } from "../context/BrandContext";
+import { CATEGORIES, getCategoryMeta, todayISO } from "../utils/finance";
+
 /**
- * TransactionForm allows the user to record
- * a new income or expense transaction.
+ * TransactionForm records a new transaction or edits an existing one.
  *
- * The form collects:
- * - Type
- * - Amount
- * - Category
- * - Description
- * - Date
+ * Thumb-first: a large amount field with a numeric keypad, tappable
+ * category tiles instead of a dropdown, and errors shown inline.
  */
-function TransactionForm({ addTransaction }) {
-  /**
-   * Returns today's date using the format
-   * required by an HTML date input.
-   */
-  const getTodayDate = () => {
-    return new Date().toISOString().split("T")[0];
-  };
+function TransactionForm({ initial, defaultType = "expense", onSubmit, onDelete }) {
+  const { settings } = useBrand();
+  const isEditing = Boolean(initial);
 
-  const [type, setType] = useState("expense");
+  const [type, setType] = useState(initial?.type ?? defaultType);
+  const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
+  const [category, setCategory] = useState(initial?.category ?? CATEGORIES[defaultType][0]);
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [date, setDate] = useState(initial?.date ?? todayISO());
+  const [error, setError] = useState("");
 
-  /**
-   * Holds the entered amount as a string
-   * so the input can stay empty while typing.
-   */
-  const [amount, setAmount] = useState("");
-
-  /**
-   * Holds the selected category.
-   * Defaults to the first expense category.
-   */
-  const [category, setCategory] = useState("Food");
-
-  /**
-   * Holds the transaction description.
-   */
-  const [description, setDescription] = useState("");
-
-  /**
-   * Holds the transaction date.
-   * Defaults to today's date.
-   */
-  const [date, setDate] = useState(getTodayDate());
-
-  /**
-   * Categories available for expense transactions.
-   */
-  const expenseCategories = [
-    "Food",
-    "Transport",
-    "Shopping",
-    "Bills",
-    "Entertainment",
-    "Health",
-    "Education",
-    "Other",
-  ];
-
-  /**
-   * Categories available for income transactions.
-   */
-  const incomeCategories = [
-    "Salary",
-    "Freelance",
-    "Gift",
-    "Other",
-  ];
-
-  /**
-   * Changes the transaction type between
-   * income and expense.
-   *
-   * It also automatically selects a valid
-   * category for the selected transaction type.
-   */
   const handleTypeChange = (newType) => {
     setType(newType);
-
-    if (newType === "income") {
-      setCategory("Salary");
-    } else {
-      setCategory("Food");
-    }
+    if (!CATEGORIES[newType].includes(category)) setCategory(CATEGORIES[newType][0]);
   };
 
-  /**
-   * Submits the transaction form.
-   *
-   * This function:
-   * - Prevents page refresh.
-   * - Validates the inputs.
-   * - Creates the new transaction.
-   * - Sends the transaction to App.jsx.
-   * - Clears the form.
-   */
   const handleSubmit = (event) => {
     event.preventDefault();
+    const value = Number(amount);
 
-    if (!amount) {
-      alert("Please enter an amount.");
-      return;
-    }
+    if (!amount || Number.isNaN(value) || value <= 0) return setError("Enter an amount greater than 0.");
+    if (!date) return setError("Choose a date.");
 
-    if (Number(amount) <= 0) {
-      alert("Amount must be greater than 0.");
-      return;
-    }
-
-    if (!category) {
-      alert("Please select a category.");
-      return;
-    }
-
-    if (!description.trim()) {
-      alert("Please enter a description.");
-      return;
-    }
-
-    if (!date) {
-      alert("Please select a date.");
-      return;
-    }
-
-    const newTransaction = {
+    onSubmit({
+      ...(initial ?? {}),
       type,
-      amount: Number(amount),
+      amount: Math.round(value * 100) / 100,
       category,
-      description: description.trim(),
+      // A note is optional; fall back to the category so lists stay readable.
+      description: description.trim() || category,
       date,
-    };
-
-    addTransaction(newTransaction);
-
-    setAmount("");
-    setDescription("");
-    setDate(getTodayDate());
+    });
   };
 
-  /**
-   * Picks the category list that matches
-   * the currently selected transaction type.
-   */
-  const categories =
-    type === "income"
-      ? incomeCategories
-      : expenseCategories;
+  const handleDelete = () => {
+    if (window.confirm(`Delete "${initial.description}"? This cannot be undone.`)) onDelete(initial.id);
+  };
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-
-      {/* Form Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900">
-          Add Transaction
-        </h2>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Record your income or expense.
-        </p>
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {/* Expense / Income */}
+      <div className="flex gap-2" role="group" aria-label="Transaction type">
+        {[
+          { value: "expense", label: "Expense" },
+          { value: "income", label: "Income" },
+        ].map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={type === option.value}
+            onClick={() => handleTypeChange(option.value)}
+            className={`pill flex-1 py-2.5 ${type === option.value ? "pill-active" : ""}`}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5"
-      >
+      {/* Amount */}
+      <div className="tile px-4 py-4 text-center">
+        <label htmlFor="tx-amount" className="text-xs font-semibold tracking-wide text-muted uppercase">
+          Amount ({settings.currency})
+        </label>
+        <input
+          id="tx-amount"
+          type="number"
+          inputMode="decimal"
+          min="0.01"
+          step="0.01"
+          value={amount}
+          onChange={(event) => {
+            setAmount(event.target.value);
+            setError("");
+          }}
+          placeholder="0.00"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "tx-error" : undefined}
+          className={`money mt-1 w-full bg-transparent text-center text-4xl! font-bold outline-none placeholder:text-white/20 ${
+            type === "income" ? "text-up" : "text-white"
+          }`}
+        />
+      </div>
 
-        {/* Income / Expense Selector */}
-        <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1">
-
-          <button
-            type="button"
-            onClick={() =>
-              handleTypeChange("income")
-            }
-            className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
-              type === "income"
-                ? "bg-white text-emerald-600 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            Money In
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              handleTypeChange("expense")
-            }
-            className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
-              type === "expense"
-                ? "bg-white text-rose-600 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            Money Out
-          </button>
-
-        </div>
-
-        {/* Amount */}
-        <div>
-          <label
-            htmlFor="amount"
-            className="mb-2 block text-sm font-semibold text-slate-600"
-          >
-            Amount
-          </label>
-
-          <input
-            id="amount"
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={amount}
-            onChange={(event) =>
-              setAmount(event.target.value)
-            }
-            placeholder="Enter amount"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-        </div>
-
-        {/* Category */}
-        <div>
-          <label
-            htmlFor="category"
-            className="mb-2 block text-sm font-semibold text-slate-600"
-          >
-            Category
-          </label>
-
-          <select
-            id="category"
-            value={category}
-            onChange={(event) =>
-              setCategory(event.target.value)
-            }
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          >
-            {categories.map((categoryItem) => (
-              <option
-                key={categoryItem}
-                value={categoryItem}
+      {/* Category tiles */}
+      <fieldset>
+        <legend className="mb-2 text-sm font-semibold text-muted">Category</legend>
+        <div className="grid grid-cols-4 gap-2">
+          {CATEGORIES[type].map((item) => {
+            const meta = getCategoryMeta(item);
+            const selected = item === category;
+            return (
+              <button
+                key={item}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setCategory(item)}
+                className={`flex min-h-[70px] flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                  selected ? "border-brand bg-brand/20 text-white" : "border-line bg-white/[0.03] text-muted hover:text-white"
+                }`}
               >
-                {categoryItem}
-              </option>
-            ))}
-          </select>
+                <span className="text-xl leading-none" aria-hidden="true">
+                  {meta.icon}
+                </span>
+                <span className="w-full truncate text-center">{item}</span>
+              </button>
+            );
+          })}
         </div>
+      </fieldset>
 
-        {/* Description */}
+      {/* Note + date */}
+      <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
         <div>
-          <label
-            htmlFor="description"
-            className="mb-2 block text-sm font-semibold text-slate-600"
-          >
-            Description
+          <label htmlFor="tx-description" className="mb-2 block text-sm font-semibold text-muted">
+            Note <span className="font-normal text-faint">(optional)</span>
           </label>
-
           <input
-            id="description"
+            id="tx-description"
             type="text"
+            maxLength="120"
+            enterKeyHint="done"
             value={description}
-            onChange={(event) =>
-              setDescription(event.target.value)
-            }
-            placeholder="Example: Grocery shopping"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder={type === "income" ? "e.g. November salary" : "e.g. Groceries"}
+            className="field"
           />
         </div>
-
-        {/* Date */}
         <div>
-          <label
-            htmlFor="date"
-            className="mb-2 block text-sm font-semibold text-slate-600"
-          >
+          <label htmlFor="tx-date" className="mb-2 block text-sm font-semibold text-muted">
             Date
           </label>
-
           <input
-            id="date"
+            id="tx-date"
             type="date"
             value={date}
-            onChange={(event) =>
-              setDate(event.target.value)
-            }
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            onChange={(event) => {
+              setDate(event.target.value);
+              setError("");
+            }}
+            className="field min-h-[46px] sm:w-44"
           />
         </div>
+      </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.99]"
-        >
-          Record Transaction
+      {error && (
+        <p id="tx-error" role="alert" className="rounded-2xl bg-down/10 px-4 py-3 text-sm font-medium text-down">
+          {error}
+        </p>
+      )}
+
+      <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
+        {isEditing && onDelete && (
+          <button type="button" onClick={handleDelete} className="rounded-full px-5 py-3 text-sm font-semibold text-down transition hover:bg-down/10 sm:mr-auto">
+            Delete
+          </button>
+        )}
+        <button type="submit" className="btn-primary w-full sm:w-auto sm:flex-1">
+          {isEditing ? "Save changes" : type === "income" ? "Add income" : "Add expense"}
         </button>
-
-      </form>
-    </section>
+      </div>
+    </form>
   );
 }
 

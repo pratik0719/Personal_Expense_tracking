@@ -1,186 +1,91 @@
 import { useState } from "react";
 
-/**
- * Categories that are allowed to have a budget.
- *
- * Only expense categories are included,
- * because budgets track spending.
- */
-const budgetCategories = [
-  "Food",
-  "Transport",
-  "Shopping",
-  "Bills",
-  "Entertainment",
-  "Health",
-  "Education",
-  "Other",
-];
+import { useBrand } from "../context/BrandContext";
+import { EXPENSE_CATEGORIES, getCategoryMeta } from "../utils/finance";
 
 /**
- * BudgetForm allows the user to create
- * a monthly spending limit for an expense category.
+ * BudgetForm creates a monthly spending limit for an expense category.
+ * Categories that already have a budget are not offered again.
  */
-function BudgetForm({
-  addBudget,
-  budgets,
-}) {
-  /**
-   * Holds the selected budget category.
-   * Defaults to the first expense category.
-   */
-  const [category, setCategory] =
-    useState("Food");
+function BudgetForm({ budgets, onSubmit }) {
+  const { settings } = useBrand();
+  const available = EXPENSE_CATEGORIES.filter((category) => !budgets.some((budget) => budget.category === category));
 
-  /**
-   * Holds the entered monthly limit
-   * as a string so the input can stay
-   * empty while typing.
-   */
-  const [limit, setLimit] =
-    useState("");
+  const [category, setCategory] = useState(available[0] ?? "");
+  const [limit, setLimit] = useState("");
+  const [error, setError] = useState("");
 
-  /**
-   * Handles the budget form submission.
-   *
-   * This function:
-   * - Prevents page refresh.
-   * - Validates the budget limit.
-   * - Prevents duplicate category budgets.
-   * - Sends the budget to App.jsx.
-   * - Clears the form after success.
-   */
+  if (available.length === 0) {
+    return (
+      <p className="tile px-4 py-4 text-sm text-muted">
+        Every expense category already has a budget. Edit an existing budget to change its limit.
+      </p>
+    );
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault();
-
-    if (!limit) {
-      alert(
-        "Please enter a monthly budget limit."
-      );
-
-      return;
-    }
-
-    if (Number(limit) <= 0) {
-      alert(
-        "Budget limit must be greater than 0."
-      );
-
-      return;
-    }
-
-    const budgetAlreadyExists =
-      budgets.some(
-        (budget) =>
-          budget.category === category
-      );
-
-    if (budgetAlreadyExists) {
-      alert(
-        `A budget already exists for ${category}.`
-      );
-
-      return;
-    }
-
-    const newBudget = {
-      category,
-      limit: Number(limit),
-    };
-
-    addBudget(newBudget);
-
-    setLimit("");
+    if (!(Number(limit) > 0)) return setError("Enter a monthly limit greater than 0.");
+    onSubmit({ category, limit: Number(limit) });
   };
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      <fieldset>
+        <legend className="mb-2 text-sm font-semibold text-muted">Category</legend>
+        <div className="grid grid-cols-4 gap-2">
+          {available.map((item) => {
+            const selected = item === category;
+            return (
+              <button
+                key={item}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setCategory(item)}
+                className={`flex min-h-[70px] flex-col items-center justify-center gap-1.5 rounded-2xl border px-1 py-2 text-[11px] font-semibold transition sm:text-xs ${
+                  selected ? "border-brand bg-brand/20 text-white" : "border-line bg-white/[0.03] text-muted hover:text-white"
+                }`}
+              >
+                <span className="text-xl leading-none" aria-hidden="true">
+                  {getCategoryMeta(item).icon}
+                </span>
+                <span className="w-full truncate text-center">{item}</span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
-      {/* Form Header */}
-      <div className="mb-6">
-        <h2 className="text-lg font-bold text-slate-900">
-          Create Budget
-        </h2>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Set a monthly spending limit
-          for an expense category.
-        </p>
+      <div className="tile px-4 py-4 text-center">
+        <label htmlFor="budget-limit" className="text-xs font-semibold tracking-wide text-muted uppercase">
+          Monthly limit ({settings.currency})
+        </label>
+        <input
+          id="budget-limit"
+          type="number"
+          inputMode="decimal"
+          min="1"
+          value={limit}
+          onChange={(event) => {
+            setLimit(event.target.value);
+            setError("");
+          }}
+          placeholder="0"
+          aria-invalid={Boolean(error)}
+          className="money mt-1 w-full bg-transparent text-center text-4xl! font-bold outline-none placeholder:text-white/20"
+        />
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5"
-      >
+      {error && (
+        <p role="alert" className="rounded-2xl bg-down/10 px-4 py-3 text-sm font-medium text-down">
+          {error}
+        </p>
+      )}
 
-        {/* Category */}
-        <div>
-          <label
-            htmlFor="budget-category"
-            className="mb-2 block text-sm font-semibold text-slate-700"
-          >
-            Category
-          </label>
-
-          <select
-            id="budget-category"
-            value={category}
-            onChange={(event) =>
-              setCategory(
-                event.target.value
-              )
-            }
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          >
-            {budgetCategories.map(
-              (categoryItem) => (
-                <option
-                  key={categoryItem}
-                  value={categoryItem}
-                >
-                  {categoryItem}
-                </option>
-              )
-            )}
-          </select>
-        </div>
-
-        {/* Monthly Limit */}
-        <div>
-          <label
-            htmlFor="budget-limit"
-            className="mb-2 block text-sm font-semibold text-slate-700"
-          >
-            Monthly Limit
-          </label>
-
-          <input
-            id="budget-limit"
-            type="number"
-            min="1"
-            step="1"
-            value={limit}
-            onChange={(event) =>
-              setLimit(
-                event.target.value
-              )
-            }
-            placeholder="Example: 500"
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-        </div>
-
-        {/* Submit Budget */}
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.99]"
-        >
-          + Create Budget
-        </button>
-
-      </form>
-
-    </section>
+      <button type="submit" className="btn-primary w-full">
+        Create {category} budget
+      </button>
+    </form>
   );
 }
 

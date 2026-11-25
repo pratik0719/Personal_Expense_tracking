@@ -1,178 +1,57 @@
+import { useLayoutEffect, useRef } from "react";
+
+import { MONTH_NAMES, recentMonths } from "../utils/finance";
+
 /**
- * MonthFilter allows users to select
- * which month and year they want to view.
- *
- * It sends the selected month/year
- * back to Dashboard.jsx.
+ * MonthFilter: a horizontally scrolling row of month pills.
+ * The selected month shows its full name and is kept centred.
  */
-function MonthFilter({
-  selectedMonth,
-  setSelectedMonth,
-}) {
-
-  /**
-   * Generates available years.
-   *
-   * Current year and previous years
-   * are displayed.
-   */
+function MonthFilter({ selectedMonth, setSelectedMonth, count = 12 }) {
+  const scrollerRef = useRef(null);
+  const hasScrolled = useRef(false);
   const currentYear = new Date().getFullYear();
+  const months = recentMonths(count);
 
-  const years = [
-    currentYear - 1,
-    currentYear,
-    currentYear + 1,
-    currentYear + 2,
-  ];
-
-
-  /**
-   * List of all months.
-   */
-  const months = [
-    {
-      value: 0,
-      name: "January",
-    },
-    {
-      value: 1,
-      name: "February",
-    },
-    {
-      value: 2,
-      name: "March",
-    },
-    {
-      value: 3,
-      name: "April",
-    },
-    {
-      value: 4,
-      name: "May",
-    },
-    {
-      value: 5,
-      name: "June",
-    },
-    {
-      value: 6,
-      name: "July",
-    },
-    {
-      value: 7,
-      name: "August",
-    },
-    {
-      value: 8,
-      name: "September",
-    },
-    {
-      value: 9,
-      name: "October",
-    },
-    {
-      value: 10,
-      name: "November",
-    },
-    {
-      value: 11,
-      name: "December",
-    },
-  ];
-
-
-  /**
-   * Updates selected month.
-   */
-  const handleMonthChange = (event) => {
-
-    setSelectedMonth({
-      ...selectedMonth,
-      month:
-        Number(event.target.value),
+  // Centre the selected pill inside the scroller (without scrolling the page).
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    const active = scroller?.querySelector('[aria-pressed="true"]');
+    if (!scroller || !active) return;
+    scroller.scrollTo({
+      left: active.offsetLeft - scroller.clientWidth / 2 + active.clientWidth / 2,
+      // Jump straight there on first render; animate later changes.
+      behavior: hasScrolled.current ? "smooth" : "auto",
     });
-
-  };
-
-
-  /**
-   * Updates selected year.
-   */
-  const handleYearChange = (event) => {
-
-    setSelectedMonth({
-      ...selectedMonth,
-      year:
-        Number(event.target.value),
-    });
-
-  };
-
+    hasScrolled.current = true;
+  }, [selectedMonth]);
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div
+      ref={scrollerRef}
+      role="group"
+      aria-label="Choose month"
+      className="scrollbar-none relative flex gap-2 overflow-x-auto px-4 py-2 sm:px-6 lg:px-8"
+    >
+      {months.map(({ month, year }) => {
+        const selected = month === selectedMonth.month && year === selectedMonth.year;
+        const name = selected ? MONTH_NAMES[month] : MONTH_NAMES[month].slice(0, 3);
+        const label = year === currentYear ? name : `${name} '${String(year).slice(2)}`;
 
-      {/* Month Selection */}
-      <select
-        value={selectedMonth.month}
-        onChange={handleMonthChange}
-        className="
-        rounded-xl
-        border
-        border-slate-200
-        bg-white
-        px-4
-        py-3
-        text-sm
-        outline-none
-        "
-      >
-
-        {months.map((month)=>(
-          <option
-            key={month.value}
-            value={month.value}
+        return (
+          <button
+            key={`${year}-${month}`}
+            type="button"
+            aria-pressed={selected}
+            aria-label={`${MONTH_NAMES[month]} ${year}`}
+            onClick={() => setSelectedMonth({ month, year })}
+            className={`pill shrink-0 ${selected ? "pill-active px-5" : "text-muted"}`}
           >
-            {month.name}
-          </option>
-        ))}
-
-      </select>
-
-
-      {/* Year Selection */}
-      <select
-        value={selectedMonth.year}
-        onChange={handleYearChange}
-        className="
-        rounded-xl
-        border
-        border-slate-200
-        bg-white
-        px-4
-        py-3
-        text-sm
-        outline-none
-        "
-      >
-
-        {
-          years.map((year)=>(
-            <option
-              key={year}
-              value={year}
-            >
-              {year}
-            </option>
-          ))
-        }
-
-      </select>
-
-
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }
-
 
 export default MonthFilter;

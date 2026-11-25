@@ -1,197 +1,113 @@
 import { NavLink } from "react-router-dom";
 
-/**
- * Application logo image.
- *
- * Imported from src/assets so Vite can
- * bundle it and provide a hashed URL.
- */
-import financeTrackerLogo from "../assets/finance-tracker-logo.png";
+import financeTrackerLogo from "../assets/app-logo.png";
+import { useBrand } from "../context/BrandContext";
+import { useTransactionSheet } from "../context/TransactionSheetContext";
+import {
+  ActivityIcon,
+  BudgetIcon,
+  HomeIcon,
+  LoanIcon,
+  PlusIcon,
+  ReportIcon,
+  SettingsIcon,
+} from "./Icons";
+
+const NAV_ITEMS = [
+  { label: "Home", path: "/", icon: HomeIcon },
+  { label: "Activity", path: "/activity", icon: ActivityIcon },
+  { label: "Report", path: "/report", icon: ReportIcon },
+  { label: "Budgets", path: "/budgets", icon: BudgetIcon },
+  { label: "Loans", path: "/loans", icon: LoanIcon },
+];
 
 /**
- * Sidebar displays the application's main navigation.
+ * Navigation.
  *
- * Desktop:
- * Shows a fixed left sidebar with the brand logo.
- *
- * Mobile:
- * Shows a fixed navigation bar at the bottom.
+ * Mobile: a floating pill tab bar (icons only, active tab widens into a
+ * glowing pill) with a separate round "+" button for quick entry.
+ * Desktop (lg+): a dark sidebar with labels, Settings and an Add button.
  */
 function Sidebar() {
-  /**
-   * Navigation items used by both
-   * desktop and mobile navigation.
-   */
-  const navigationItems = [
-    {
-      name: "Dashboard",
-      path: "/",
-      icon: "⌂",
-    },
-    {
-      name: "Income",
-      path: "/income",
-      icon: "↗",
-    },
-    {
-      name: "Expenses",
-      path: "/expenses",
-      icon: "↘",
-    },
-    {
-      name: "Budgets",
-      path: "/budgets",
-      icon: "◔",
-    },
-  ];
-
-  /**
-   * Returns styling for desktop navigation links.
-   *
-   * The active page receives a different
-   * background and text color.
-   */
-  const getDesktopLinkClass = ({
-    isActive,
-  }) => {
-    return `
-      flex items-center gap-3 rounded-xl px-4 py-3
-      text-sm font-medium transition duration-200
-      ${
-        isActive
-          ? "bg-slate-800 text-white"
-          : "text-slate-400 hover:bg-slate-900 hover:text-white"
-      }
-    `;
-  };
-
-  /**
-   * Returns styling for mobile navigation links.
-   */
-  const getMobileLinkClass = ({
-    isActive,
-  }) => {
-    return `
-      flex flex-col items-center justify-center gap-1
-      text-[10px] font-medium transition
-      ${
-        isActive
-          ? "text-indigo-600"
-          : "text-slate-500"
-      }
-    `;
-  };
+  const { settings } = useBrand();
+  const { openAdd } = useTransactionSheet();
+  const logo = settings.logo || financeTrackerLogo;
 
   return (
     <>
-      {/* =================================
-          MOBILE TOP BAR
-
-          Visible only below the lg breakpoint,
-          where the desktop sidebar is hidden.
-          Reuses the same brand logo image.
-      ================================= */}
-      <header className="sticky top-0 z-40 flex items-center gap-3 bg-slate-950 px-4 py-3 shadow-lg shadow-indigo-950/20 lg:hidden">
-
-        {/* Brand logo image from src/assets */}
-        <img
-          src={financeTrackerLogo}
-          alt="Expense Tracker logo"
-          className="h-9 w-9 rounded-xl bg-white object-contain p-1"
-        />
-
-        <div>
-          <h1 className="text-base font-bold text-white">
-            ExpenseFlow
-          </h1>
-
-          <p className="text-[11px] text-slate-500">
-            Personal Finance
-          </p>
-        </div>
-
-      </header>
-
-
-      {/* ================================= 
-          DESKTOP SIDEBAR
-      ================================= */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-slate-950 p-6 lg:flex">
-
-        {/* Application Logo and Brand Name */}
-        <div className="mb-10 flex items-center gap-3">
-
-          {/* Brand logo image from src/assets */}
-          <img
-            src={financeTrackerLogo}
-            alt="Expense Tracker logo"
-            className="h-11 w-11 rounded-2xl bg-white object-contain p-1 shadow-lg shadow-indigo-950"
-          />
-
-          <div>
-            <h1 className="font-bold text-white">
-              ExpenseFlow
-            </h1>
-
-            <p className="text-xs text-slate-500">
-              Personal Finance
-            </p>
+      {/* ===== Desktop sidebar ===== */}
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-[#0a0a18]/80 p-6 backdrop-blur lg:flex">
+        <div className="mb-8 flex items-center gap-3">
+          <img src={logo} alt="" className="h-11 w-11 shrink-0 rounded-2xl border border-line bg-black object-cover" />
+          <div className="min-w-0">
+            <p className="truncate font-bold text-white">{settings.appName}</p>
+            <p className="truncate text-xs text-muted">{settings.tagline}</p>
           </div>
-
         </div>
 
-        {/* Navigation Links */}
-        <nav className="space-y-2">
+        <button type="button" onClick={() => openAdd()} className="btn-primary mb-6 flex items-center justify-center gap-2 text-sm">
+          <PlusIcon className="h-4 w-4" /> Add transaction
+        </button>
 
-          {navigationItems.map((item) => (
+        <nav aria-label="Main" className="space-y-1">
+          {[...NAV_ITEMS, { label: "Settings", path: "/settings", icon: SettingsIcon }].map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               end={item.path === "/"}
-              className={
-                getDesktopLinkClass
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                  isActive ? "pill-active" : "text-muted hover:bg-white/5 hover:text-white"
+                }`
               }
             >
-              <span className="w-6 text-center text-lg">
-                {item.icon}
-              </span>
-
-              <span>
-                {item.name}
-              </span>
+              <item.icon />
+              {item.label}
             </NavLink>
           ))}
-
         </nav>
 
+        <p className="mt-auto text-xs text-faint">Your data is saved privately on this device.</p>
       </aside>
 
+      {/* ===== Mobile floating tab bar ===== */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+        {/* Fade so list content doesn't clash with the floating bar */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink via-ink/80 to-transparent" aria-hidden="true" />
 
-      {/* =================================
-          MOBILE BOTTOM NAVIGATION
-      ================================= */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 border-t border-slate-200 bg-white/95 px-2 py-2 shadow-[0_-5px_20px_rgba(15,23,42,0.05)] backdrop-blur-md lg:hidden">
+        <div className="relative flex items-center justify-center gap-3 px-4">
+          <nav
+            aria-label="Main"
+            className="pointer-events-auto flex items-center gap-1 rounded-full border border-line bg-[#15152f]/95 p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-md"
+          >
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === "/"}
+                aria-label={item.label}
+                title={item.label}
+                className={({ isActive }) =>
+                  `flex h-11 items-center justify-center rounded-full transition-all duration-200 ${
+                    isActive ? "pill-active w-16 max-[359px]:w-12" : "w-11 text-muted active:bg-white/10 max-[359px]:w-9"
+                  }`
+                }
+              >
+                <item.icon className="h-[22px] w-[22px]" />
+              </NavLink>
+            ))}
+          </nav>
 
-        {navigationItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === "/"}
-              className={
-                getMobileLinkClass
-              }
-            >
-              <span className="text-lg leading-none">
-                {item.icon}
-              </span>
-
-              <span>
-                {item.name}
-              </span>
-            </NavLink>
-          ))}
-
-      </nav>
+          <button
+            type="button"
+            onClick={() => openAdd()}
+            aria-label="Add transaction"
+            className="pointer-events-auto flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand max-[359px]:h-12 max-[359px]:w-12 text-white shadow-[0_8px_28px_rgba(0,0,0,0.5)] ring-1 ring-white/20 transition active:scale-95"
+          >
+            <PlusIcon className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
     </>
   );
 }

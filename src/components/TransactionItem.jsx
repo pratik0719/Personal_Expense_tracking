@@ -1,105 +1,54 @@
+import { useCurrencyFormatter } from "../context/BrandContext";
+import { useTransactionSheet } from "../context/TransactionSheetContext";
+import { getCategoryMeta } from "../utils/finance";
+
 /**
- * TransactionItem displays one individual transaction.
- *
- * It shows:
- * - Transaction type
- * - Description
- * - Category
- * - Date
- * - Amount
- * - Delete button
+ * One transaction row. The whole row is a large tap target that opens
+ * the edit sheet, where the transaction can also be deleted.
  */
-function TransactionItem({
-  transaction,
-  deleteTransaction,
-}) {
-  /**
-   * Formats a transaction amount into NPR currency.
-   */
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat(
-      "en-IN",
-      {
-        style: "currency",
-        currency: "NPR",
-      }
-    ).format(amount);
-  };
+function TransactionItem({ transaction }) {
+  const formatCurrency = useCurrencyFormatter();
+  const { openEdit } = useTransactionSheet();
 
-  /**
-   * Deletes the current transaction
-   * after asking the user for confirmation.
-   */
-  const handleDelete = () => {
-    const confirmDelete = window.confirm(
-      `Delete "${transaction.description}"?`
-    );
-
-    if (confirmDelete) {
-      deleteTransaction(transaction.id);
-    }
-  };
-
-  const isIncome =
-    transaction.type === "income";
+  const isIncome = transaction.type === "income";
+  const meta = getCategoryMeta(transaction.category);
+  const hasNote = transaction.description && transaction.description !== transaction.category;
 
   return (
-    <article className="grid grid-cols-[44px_1fr_auto] items-center gap-3 border-b border-slate-100 py-4 last:border-0 sm:grid-cols-[44px_1fr_auto_auto]">
-
-      {/* Transaction Icon */}
-      <div
-        className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg font-bold ${
-          isIncome
-            ? "bg-emerald-50 text-emerald-600"
-            : "bg-rose-50 text-rose-600"
-        }`}
+    <li>
+      <button
+        type="button"
+        onClick={() => openEdit(transaction)}
+        className="flex w-full items-center gap-3 rounded-2xl px-2 py-2.5 text-left transition hover:bg-white/[0.04] active:bg-white/[0.07]"
+        aria-label={`${transaction.description}, ${isIncome ? "income" : "expense"} of ${formatCurrency(transaction.amount)}. Tap to edit.`}
       >
-        {isIncome ? "↗" : "↘"}
-      </div>
+        <span className="relative shrink-0" aria-hidden="true">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white/[0.06] text-lg">
+            {meta.icon}
+          </span>
+          {/* In / out badge */}
+          <span
+            className={`absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-ink text-[8px] font-bold text-ink ${
+              isIncome ? "bg-up" : "bg-down"
+            }`}
+          >
+            {isIncome ? "+" : "−"}
+          </span>
+        </span>
 
-      {/* Transaction Details */}
-      <div className="min-w-0">
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[15px] font-semibold text-white">{transaction.description}</span>
+          <span className="mt-0.5 block truncate text-xs text-muted">
+            {hasNote ? transaction.category : isIncome ? "Income" : "Expense"}
+          </span>
+        </span>
 
-        <h3 className="truncate text-sm font-semibold text-slate-800">
-          {transaction.description}
-        </h3>
-
-        <p className="mt-1 text-xs text-slate-400">
-          {transaction.category}
-        </p>
-
-      </div>
-
-      {/* Transaction Date */}
-      <p className="hidden text-xs text-slate-400 sm:block">
-        {transaction.date}
-      </p>
-
-      {/* Amount and Delete */}
-      <div className="text-right">
-
-        <p
-          className={`text-sm font-bold ${
-            isIncome
-              ? "text-emerald-600"
-              : "text-rose-600"
-          }`}
-        >
-          {isIncome ? "+" : "-"}
+        <span className={`money shrink-0 text-sm font-bold ${isIncome ? "text-up" : "text-down"}`}>
+          {isIncome ? "+" : "−"}
           {formatCurrency(transaction.amount)}
-        </p>
-
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="mt-1 text-xs text-slate-400 transition hover:text-rose-600"
-        >
-          Delete
-        </button>
-
-      </div>
-
-    </article>
+        </span>
+      </button>
+    </li>
   );
 }
 

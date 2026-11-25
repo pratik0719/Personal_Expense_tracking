@@ -1,534 +1,199 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import TransactionItem from "./TransactionItem";
+import { SearchIcon } from "./Icons";
+import TransactionGroups from "./TransactionGroups";
+import { useTransactionSheet } from "../context/TransactionSheetContext";
+import { MONTH_NAMES, sortByDate } from "../utils/finance";
 
-/**
- * Labels for the twelve months,
- * used by the month filter dropdown.
- *
- * The option values are zero-padded
- * month numbers ("01" to "12") so they
- * can be compared directly against the
- * month part of the ISO date string.
- */
-const MONTH_LABELS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+const PAGE_SIZE = 40;
+const TYPE_TABS = [
+  { value: "", label: "All" },
+  { value: "expense", label: "Expenses" },
+  { value: "income", label: "Income" },
 ];
 
 /**
- * TransactionList displays all recorded transactions.
- *
- * It includes:
- * - A search box that filters transactions
- *   by description or category.
- * - An optional category filter dropdown.
- * - A month and year filter so the user
- *   can view transactions from a specific
- *   month or year.
- * - A date sorting toggle (newest or oldest first).
- *
- * If there are no transactions,
- * it displays an empty state instead.
- *
- * If no transaction matches the active
- * filters, it displays a no-results
- * message instead.
+ * Full transaction list with type tabs, search, category/month/year
+ * filters (folded behind a button on phones) and paging.
  */
-function TransactionList({
-  transactions,
-  deleteTransaction,
-  showCategoryFilter = false,
-}) {
-  /**
-   * Holds the current search text.
-   *
-   * The search matches against the
-   * description and the category.
-   */
-  const [searchTerm, setSearchTerm] =
-    useState("");
+function TransactionList({ transactions, initialType = "" }) {
+  const { openAdd } = useTransactionSheet();
 
-  /**
-   * Holds the selected category filter.
-   *
-   * An empty string means "All categories".
-   */
-  const [categoryFilter, setCategoryFilter] =
-    useState("");
+  const [type, setType] = useState(initialType);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  /**
-   * Holds the selected month filter.
-   *
-   * An empty string means "All months".
-   * Otherwise it is a zero-padded month
-   * number like "01" for January.
-   */
-  const [monthFilter, setMonthFilter] =
-    useState("");
+  const ofType = useMemo(
+    () => transactions.filter((transaction) => !type || transaction.type === type),
+    [transactions, type]
+  );
+  const categories = useMemo(() => [...new Set(ofType.map((transaction) => transaction.category))].sort(), [ofType]);
+  const years = useMemo(
+    () => [...new Set(transactions.map((transaction) => transaction.date.slice(0, 4)))].sort().reverse(),
+    [transactions]
+  );
 
-  /**
-   * Holds the selected year filter.
-   *
-   * An empty string means "All years".
-   * Otherwise it is a four-digit year
-   * like "2026".
-   */
-  const [yearFilter, setYearFilter] =
-    useState("");
-
-  /**
-   * Controls the date sort direction.
-   *
-   * "newest" places the most recent
-   * transactions at the top.
-   * "oldest" places the earliest
-   * transactions at the top.
-   */
-  const [sortOrder, setSortOrder] =
-    useState("newest");
-
-  /**
-   * Builds the category dropdown options
-   * from the transactions themselves.
-   *
-   * This way the Income page only offers
-   * income categories and the Expense page
-   * only offers expense categories.
-   */
-  const getAvailableCategories = () => {
-    const categorySet = new Set(
-      transactions.map(
-        (transaction) => transaction.category
-      )
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return sortByDate(
+      ofType.filter(
+        (transaction) =>
+          (!query ||
+            transaction.description.toLowerCase().includes(query) ||
+            transaction.category.toLowerCase().includes(query)) &&
+          (!category || transaction.category === category) &&
+          (!year || transaction.date.slice(0, 4) === year) &&
+          (!month || transaction.date.slice(5, 7) === month)
+      ),
+      sortOrder
     );
+  }, [ofType, search, category, month, year, sortOrder]);
 
-    return Array.from(categorySet).sort(
-      (first, second) =>
-        first.localeCompare(second)
-    );
+  const activeFilterCount = [category, month, year].filter(Boolean).length;
+  const isFiltering = activeFilterCount > 0 || search.trim() !== "";
+
+  const reset = () => setVisibleCount(PAGE_SIZE);
+  const bind = (setter) => (event) => {
+    setter(event.target.value);
+    reset();
   };
-
-  /**
-   * Builds the year dropdown options from
-   * the transactions themselves.
-   *
-   * The years are sorted with the most
-   * recent one first.
-   */
-  const getAvailableYears = () => {
-    const yearSet = new Set(
-      transactions.map(
-        (transaction) => transaction.date.slice(0, 4)
-      )
-    );
-
-    return Array.from(yearSet).sort().reverse();
-  };
-
-  /**
-   * Sorts transactions by date.
-   *
-   * The unique transaction ID is used as a
-   * tie-breaker when transactions share
-   * the same date.
-   */
-  const sortTransactions = (
-    transactionsToSort
-  ) => {
-    const sortedTransactions = [
-      ...transactionsToSort,
-    ];
-
-    sortedTransactions.sort(
-      (first, second) => {
-        const firstDate = new Date(
-          `${first.date}T00:00:00`
-        );
-
-        const secondDate = new Date(
-          `${second.date}T00:00:00`
-        );
-
-        if (
-          secondDate.getTime() !==
-          firstDate.getTime()
-        ) {
-          return sortOrder === "newest"
-            ? secondDate - firstDate
-            : firstDate - secondDate;
-        }
-
-        return sortOrder === "newest"
-          ? second.id - first.id
-          : first.id - second.id;
-      }
-    );
-
-    return sortedTransactions;
-  };
-
-  /**
-   * Filters and sorts the transaction list
-   * using the search text, the selected
-   * category, and the selected month
-   * and year.
-   *
-   * The search is case-insensitive and
-   * matches a partial word anywhere.
-   *
-   * Transaction dates are stored as
-   * "YYYY-MM-DD" strings, so the year is
-   * the first four characters and the
-   * month is characters five and six.
-   */
-  const getFilteredTransactions = () => {
-    const normalizedSearch =
-      searchTerm.trim().toLowerCase();
-
-    const filteredTransactions =
-      transactions.filter((transaction) => {
-        const description =
-          transaction.description.toLowerCase();
-
-        const category =
-          transaction.category.toLowerCase();
-
-        const matchesSearch =
-          !normalizedSearch ||
-          description.includes(
-            normalizedSearch
-          ) ||
-          category.includes(
-            normalizedSearch
-          );
-
-        const matchesCategory =
-          !categoryFilter ||
-          transaction.category ===
-            categoryFilter;
-
-        const matchesYear =
-          !yearFilter ||
-          transaction.date.slice(0, 4) ===
-            yearFilter;
-
-        const matchesMonth =
-          !monthFilter ||
-          transaction.date.slice(5, 7) ===
-            monthFilter;
-
-        return (
-          matchesSearch &&
-          matchesCategory &&
-          matchesYear &&
-          matchesMonth
-        );
-      });
-
-    return sortTransactions(
-      filteredTransactions
-    );
-  };
-
-  /**
-   * Resets the search text, the category
-   * filter, and the month and year
-   * filters.
-   */
   const clearFilters = () => {
-    setSearchTerm("");
-    setCategoryFilter("");
-    setMonthFilter("");
-    setYearFilter("");
+    setSearch("");
+    setCategory("");
+    setMonth("");
+    setYear("");
+    reset();
   };
 
-  /**
-   * True when at least one filter
-   * is currently active.
-   */
-  const isFilterActive =
-    searchTerm.trim() !== "" ||
-    categoryFilter !== "" ||
-    monthFilter !== "" ||
-    yearFilter !== "";
-
-  const filteredTransactions =
-    getFilteredTransactions();
-
-  const availableCategories =
-    getAvailableCategories();
-
-  const availableYears =
-    getAvailableYears();
+  const selectClass = "field py-2.5 sm:w-auto";
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-
-      {/* Transaction List Header */}
-      <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">
-            Recent Transactions
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-500">
-            {isFilterActive
-              ? `Showing ${filteredTransactions.length} of ${transactions.length}`
-              : `${transactions.length} ${
-                  transactions.length === 1
-                    ? "transaction"
-                    : "transactions"
-                }`}
-          </p>
+    <div className="space-y-4">
+      {/* Type tabs + sort */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="scrollbar-none flex gap-2 overflow-x-auto" role="group" aria-label="Transaction type">
+          {TYPE_TABS.map((tab) => (
+            <button
+              key={tab.label}
+              type="button"
+              aria-pressed={type === tab.value}
+              onClick={() => {
+                setType(tab.value);
+                setCategory("");
+                reset();
+              }}
+              className={`pill shrink-0 ${type === tab.value ? "pill-active" : "text-muted"}`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* List Controls: Search, Category Filter, Sort */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-
-          {/* Search Box */}
-          <div className="relative sm:w-56 sm:shrink-0">
-
-            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-              🔍
-            </span>
-
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(event) =>
-                setSearchTerm(
-                  event.target.value
-                )
-              }
-              placeholder="Search transactions..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-9 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
-            />
-
-            {/* Clear Search Button */}
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() =>
-                  setSearchTerm("")
-                }
-                aria-label="Clear search"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full px-1.5 text-slate-400 transition hover:text-slate-700"
-              >
-                ✕
-              </button>
-            )}
-
-          </div>
-
-          {/* Category Filter Dropdown */}
-          {showCategoryFilter && (
-            <select
-              value={categoryFilter}
-              onChange={(event) =>
-                setCategoryFilter(
-                  event.target.value
-                )
-              }
-              aria-label="Filter by category"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-44 sm:shrink-0"
-            >
-              <option value="">
-                All categories
-              </option>
-
-              {availableCategories.map(
-                (categoryItem) => (
-                  <option
-                    key={categoryItem}
-                    value={categoryItem}
-                  >
-                    {categoryItem}
-                  </option>
-                )
-              )}
-            </select>
-          )}
-
-          {/* Year Filter Dropdown */}
-          <select
-            value={yearFilter}
-            onChange={(event) =>
-              setYearFilter(
-                event.target.value
-              )
-            }
-            aria-label="Filter by year"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-32 sm:shrink-0"
-          >
-            <option value="">
-              All years
-            </option>
-
-            {availableYears.map(
-              (yearItem) => (
-                <option
-                  key={yearItem}
-                  value={yearItem}
-                >
-                  {yearItem}
-                </option>
-              )
-            )}
-          </select>
-
-          {/* Month Filter Dropdown */}
-          <select
-            value={monthFilter}
-            onChange={(event) =>
-              setMonthFilter(
-                event.target.value
-              )
-            }
-            aria-label="Filter by month"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-40 sm:shrink-0"
-          >
-            <option value="">
-              All months
-            </option>
-
-            {MONTH_LABELS.map(
-              (monthLabel, monthIndex) => (
-                <option
-                  key={monthLabel}
-                  value={String(
-                    monthIndex + 1
-                  ).padStart(2, "0")}
-                >
-                  {monthLabel}
-                </option>
-              )
-            )}
-          </select>
-
-          {/* Date Sort Toggle */}
-          <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1 sm:shrink-0">
-
-            <button
-              type="button"
-              onClick={() =>
-                setSortOrder("newest")
-              }
-              className={`rounded-lg px-3 py-2.5 text-xs font-semibold transition sm:text-sm ${
-                sortOrder === "newest"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Newest first
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                setSortOrder("oldest")
-              }
-              className={`rounded-lg px-3 py-2.5 text-xs font-semibold transition sm:text-sm ${
-                sortOrder === "oldest"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Oldest first
-            </button>
-
-          </div>
-
-          {/* Clear Filters Button */}
-          {isFilterActive && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="text-xs font-semibold text-indigo-600 transition hover:text-indigo-700"
-            >
-              ✕ Clear filters
-            </button>
-          )}
-
-        </div>
-
+        <button
+          type="button"
+          onClick={() => setSortOrder((order) => (order === "newest" ? "oldest" : "newest"))}
+          className="shrink-0 text-xs font-semibold text-muted hover:text-white"
+          aria-label={`Sorted ${sortOrder} first. Change sort order.`}
+        >
+          {sortOrder === "newest" ? "Newest ↓" : "Oldest ↑"}
+        </button>
       </div>
 
-      {/* Empty State */}
-      {transactions.length === 0 ? (
-
-        <div className="rounded-2xl bg-slate-50 px-4 py-12 text-center">
-
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-xl font-bold text-indigo-600">
-            NPR
-          </div>
-
-          <h3 className="font-semibold text-slate-700">
-            No transactions yet
-          </h3>
-
-          <p className="mt-2 text-sm text-slate-400">
-            Add your first income or expense transaction.
-          </p>
-
+      {/* Search + filter toggle */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-faint" />
+          <input
+            type="search"
+            value={search}
+            onChange={bind(setSearch)}
+            placeholder="Search notes or categories"
+            aria-label="Search transactions"
+            enterKeyHint="search"
+            className="field rounded-full py-2.5 pl-10"
+          />
         </div>
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((open) => !open)}
+          aria-expanded={filtersOpen}
+          aria-controls="list-filters"
+          className={`pill shrink-0 sm:hidden ${filtersOpen || activeFilterCount ? "pill-active" : "text-muted"}`}
+        >
+          Filters{activeFilterCount > 0 && ` · ${activeFilterCount}`}
+        </button>
+      </div>
 
-      ) : filteredTransactions.length === 0 ? (
+      {/* Filters: collapsible on phones, always visible from sm up */}
+      <div id="list-filters" className={`${filtersOpen ? "grid" : "hidden"} grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center`}>
+        <select value={category} onChange={bind(setCategory)} aria-label="Filter by category" className={`${selectClass} col-span-2`}>
+          <option value="">All categories</option>
+          {categories.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+        <select value={month} onChange={bind(setMonth)} aria-label="Filter by month" className={selectClass}>
+          <option value="">All months</option>
+          {MONTH_NAMES.map((name, index) => (
+            <option key={name} value={String(index + 1).padStart(2, "0")}>
+              {name}
+            </option>
+          ))}
+        </select>
+        <select value={year} onChange={bind(setYear)} aria-label="Filter by year" className={selectClass}>
+          <option value="">All years</option>
+          {years.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+        {isFiltering && (
+          <button type="button" onClick={clearFilters} className="col-span-2 py-2 text-sm font-semibold text-brand sm:col-span-1">
+            Clear all
+          </button>
+        )}
+      </div>
 
-        <div className="rounded-2xl bg-slate-50 px-4 py-12 text-center">
+      <p className="px-1 text-xs text-muted">
+        {isFiltering ? `${filtered.length} of ${ofType.length} shown` : `${ofType.length} transactions`}
+      </p>
 
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-xl">
-            🔍
-          </div>
-
-          <h3 className="font-semibold text-slate-700">
-            No matching transactions
-          </h3>
-
-          <p className="mt-2 text-sm text-slate-400">
-            Nothing matches the current search,
-            category, or month and year filters.
-            Try different keywords.
-          </p>
-
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="mt-5 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
-          >
+      {/* Results */}
+      {ofType.length === 0 ? (
+        <div className="panel px-6 py-12 text-center">
+          <p className="font-semibold">No transactions yet</p>
+          <p className="mt-1 text-sm text-muted">Tap + to record your first one.</p>
+          <button type="button" onClick={() => openAdd(type || "expense")} className="btn-primary mt-5 px-6 text-sm">
+            Add transaction
+          </button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="panel px-6 py-12 text-center">
+          <p className="font-semibold">No matching transactions</p>
+          <p className="mt-1 text-sm text-muted">Try a different search or clear the filters.</p>
+          <button type="button" onClick={clearFilters} className="pill mt-5">
             Clear filters
           </button>
-
         </div>
-
       ) : (
-        <div>
-          {filteredTransactions.map(
-            (transaction) => (
-              <TransactionItem
-                key={transaction.id}
-                transaction={transaction}
-                deleteTransaction={
-                  deleteTransaction
-                }
-              />
-            )
+        <>
+          <TransactionGroups transactions={filtered.slice(0, visibleCount)} />
+          {filtered.length > visibleCount && (
+            <button type="button" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)} className="pill w-full py-3">
+              Show more ({filtered.length - visibleCount} remaining)
+            </button>
           )}
-        </div>
+        </>
       )}
-
-    </section>
+    </div>
   );
 }
 

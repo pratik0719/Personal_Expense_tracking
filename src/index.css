@@ -1,36 +1,234 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
+/*
+ * Dark "night glass" theme.
+ *
+ * - Near-black page with a violet glow behind the page header.
+ * - Deep indigo panels with a faint lit top edge.
+ * - Pills and chips for months, filters and categories.
+ *
+ * --brand-accent is set by the user in Settings (BrandContext) and is
+ * available as bg-brand / text-brand / ring-brand/30, etc.
+ */
+:root {
+  --brand-accent: #6c5ce7;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-brand: var(--brand-accent);
+  --font-sans: "Manrope Variable", "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@theme {
+  --color-ink: #06060d;
+  --color-panel: #121230;
+  --color-panel-2: #191940;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-muted: #9b9bb8;
+  --color-faint: #6b6b88;
+  --color-up: #34d399;
+  --color-down: #fb7185;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--color-ink);
+  /* No double-tap-to-zoom (quick taps on buttons zoomed the page); pinch zoom still works. */
+  touch-action: manipulation;
+  /* Never allow sideways scrolling of the whole page. */
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
-
-  background: #f8fafc;
-
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
+  min-height: 100dvh;
+  color: #f4f4fb;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  background:
+    radial-gradient(700px 340px at 50% -140px, color-mix(in srgb, var(--brand-accent) 55%, transparent), transparent 72%),
+    var(--color-ink);
+  background-repeat: no-repeat;
 }
 
 button {
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* ---------- Reusable surfaces ---------- */
+
+/* Main card: deep indigo glass with a lit top edge. */
+@utility panel {
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-line);
+  background: linear-gradient(180deg, rgb(28 26 72 / 0.92) 0%, rgb(14 14 36 / 0.92) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--brand-accent) 45%, transparent),
+    0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+/* Smaller nested tile inside a panel. */
+@utility tile {
+  border-radius: 1.1rem;
+  border: 1px solid var(--color-line);
+  background: rgb(10 10 28 / 0.55);
+}
+
+/* Category / info chip with a coloured dot. */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.03);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+/* Outline pill used for months, tabs and secondary buttons. */
+@utility pill {
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: rgb(255 255 255 / 0.02);
+  padding: 0.5rem 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #e8e8f4;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+
+/* Selected state for pill. */
+@utility pill-active {
+  border-color: color-mix(in srgb, var(--brand-accent) 70%, white 30%);
+  background: color-mix(in srgb, var(--brand-accent) 75%, black 25%);
+  color: white;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--brand-accent) 45%, transparent);
+}
+
+/* Text inputs and selects. */
+@utility field {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: white;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+
+  &::placeholder {
+    color: var(--color-faint);
+  }
+
+  &:focus {
+    border-color: var(--brand-accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-accent) 25%, transparent);
+  }
+}
+
+/* Primary action button. */
+@utility btn-primary {
+  border-radius: 9999px;
+  background: var(--brand-accent);
+  padding: 0.8rem 1.25rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--brand-accent) 40%, transparent);
+  transition: filter 150ms, transform 100ms;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+/* Big money figures use a monospaced face, like a statement. */
+@utility money {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+select option {
+  background: #14142e;
+  color: white;
+}
+
+/* iOS zooms into any focused field smaller than 16px; keep fields at 16px on phones. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ---------- Bottom sheet ---------- */
+
+html.sheet-open {
+  overflow: hidden;
+}
+
+dialog.sheet[open] {
+  animation: sheet-up 220ms ease-out;
+}
+
+dialog.sheet::backdrop {
+  background: rgb(0 0 0 / 0.65);
+  backdrop-filter: blur(3px);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  dialog.sheet[open] {
+    animation: none;
+  }
+}
+
+/* Hide number input spinners; amounts are typed, not stepped. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
